@@ -152,6 +152,7 @@ frontend/discourse-i18n/src/index.d.ts.map
 /frontend/discourse-types/dts-generator.js
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 # Rust Cargo Build Artifacts
@@ -168,3 +169,6 @@ crates/discourse_core/target/
 =======
 /crates/discourse_core/target
 >>>>>>> origin/migrate-loggers-to-rust-17907863337362480411
+=======
+crates/discourse_core/target/
+>>>>>>> origin/acl-migration-to-rust-15441442791026599453

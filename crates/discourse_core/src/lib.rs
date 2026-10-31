@@ -1,3 +1,4 @@
+pub mod acl;
 pub mod admin_reports;
 pub mod backup;
 pub mod browser;

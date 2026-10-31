@@ -153,6 +153,7 @@ frontend/discourse-i18n/src/index.d.ts.map
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 # Rust Cargo Build Artifacts
@@ -172,3 +173,9 @@ crates/discourse_core/target/
 =======
 crates/discourse_core/target/
 >>>>>>> origin/acl-migration-to-rust-15441442791026599453
+=======
+crates/discourse_core/target
+crates/discourse_core/target/
+/crates/discourse_core/target/
+crates/discourse_core/target/
+>>>>>>> origin/jules-rust-autospec-migration-6244207711993542374

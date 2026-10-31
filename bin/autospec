@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+exec cargo run --manifest-path crates/discourse_core/Cargo.toml --bin autospec -- "$@"

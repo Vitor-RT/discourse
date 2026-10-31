@@ -1,4 +1,11 @@
-# frozen_string_literal: true
+use std::fs::{self, File};
+use std::io::Write;
+use std::path::Path;
+
+pub struct Formatter;
+
+impl Formatter {
+    const RUBY_FORMATTER_CODE: &'static str = r#"# frozen_string_literal: true
 
 require "rspec/core/formatters/base_text_formatter"
 require "parallel_tests/rspec/logger_base"
@@ -45,3 +52,14 @@ class Autospec::Formatter < RSpec::Core::Formatters::BaseTextFormatter
     super(filename)
   end
 end
+"#;
+
+    pub fn setup_ruby_formatter() -> String {
+        let path = "/tmp/discourse_autospec_formatter.rb";
+        if !Path::new(path).exists() {
+            let mut file = File::create(path).unwrap();
+            file.write_all(Self::RUBY_FORMATTER_CODE.as_bytes()).unwrap();
+        }
+        path.to_string()
+    }
+}

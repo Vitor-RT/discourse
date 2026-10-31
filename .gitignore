@@ -150,32 +150,9 @@ frontend/discourse-i18n/src/index.d.ts.map
 /.cursor
 .playwright-mcp
 /frontend/discourse-types/dts-generator.js
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 
-<<<<<<< HEAD
 # Rust Cargo Build Artifacts
 target/
 **/target/
 **/*.rs.bk
-=======
-crates/discourse_core/target
-crates/discourse_core/target/
->>>>>>> origin/jules-rust-migration-18163536637957675904
-=======
-/crates/**/target/
->>>>>>> origin/migrate-text-utils-to-rust-710381343841392506
-=======
-/crates/discourse_core/target
->>>>>>> origin/migrate-loggers-to-rust-17907863337362480411
-=======
-crates/discourse_core/target/
->>>>>>> origin/acl-migration-to-rust-15441442791026599453
-=======
-crates/discourse_core/target
-crates/discourse_core/target/
-/crates/discourse_core/target/
-crates/discourse_core/target/
->>>>>>> origin/jules-rust-autospec-migration-6244207711993542374
+*.rs.bk

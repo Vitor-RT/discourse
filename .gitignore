@@ -150,6 +150,7 @@ frontend/discourse-i18n/src/index.d.ts.map
 /.cursor
 .playwright-mcp
 /frontend/discourse-types/dts-generator.js
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 # Rust Cargo Build Artifacts
@@ -160,3 +161,6 @@ target/
 crates/discourse_core/target
 crates/discourse_core/target/
 >>>>>>> origin/jules-rust-migration-18163536637957675904
+=======
+/crates/**/target/
+>>>>>>> origin/migrate-text-utils-to-rust-710381343841392506

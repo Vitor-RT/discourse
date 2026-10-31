@@ -1,0 +1,15 @@
+1. **Translate `registry.rb` to `registry.rs`**: Based on `registry.rb`'s full content, create a `Registry` struct that holds a collection of boxed `SourceProvider`s. Implement `provider_for`, `providers`, and `dispatch_per_source` methods. Add `#[cfg(test)] mod tests { ... }` in this file.
+2. **Run Cargo Check**: Verify that code syntax and compilation succeed so far by running `cargo check` in the `crates/discourse_core` directory.
+3. **Translate `mounter.rb` to `mounter.rs`**: Based on `mounter.rb`'s exact content, create a `Mounter` logic. Since it interacts with `AdminDashboardReport`, define an `AdminDashboardReportStore` trait with `find_by`, `create`, `count`, and `delete_all` methods to abstract ActiveRecord. Implement `mount` and `unmount` which uses `Registry` and raises `CapReached` or `InvalidAccess`. Add `#[cfg(test)] mod tests { ... }` in this file.
+4. **Run Cargo Check**: Verify that code syntax and compilation succeed so far by running `cargo check` in the `crates/discourse_core` directory.
+5. **Translate `bulk_fetch.rb` to `bulk_fetch.rs`**: Based on `bulk_fetch.rb`'s exact content, implement `BulkFetch::call` functionality. Provide a function that maps items, fetches from their providers (in parallel using thread pool or simulated), and catches errors. Add `#[cfg(test)] mod tests { ... }` in this file.
+6. **Run Cargo Check**: Verify that code syntax and compilation succeed so far by running `cargo check` in the `crates/discourse_core` directory.
+7. **Translate `layout_updater.rb` to `layout_updater.rs`**: Based on `layout_updater.rb`'s exact content, implement `LayoutUpdater::call`. Group items by source, check accessible IDs using `Registry` and the store trait. Add `#[cfg(test)] mod tests { ... }` in this file.
+8. **Run Cargo Check**: Verify that code syntax and compilation succeed so far by running `cargo check` in the `crates/discourse_core` directory.
+9. **Translate `listing.rb` to `listing.rs`**: Based on `listing.rb`'s exact content, translate `AdminDashboard::Reports::Listing`. Implement the logic to aggregate providers, call `list_all`, sort keys, paginate items with `cursor`, and compute `has_more`. Add `#[cfg(test)] mod tests { ... }` in this file.
+10. **Run Cargo Check**: Verify that code syntax and compilation succeed so far by running `cargo check` in the `crates/discourse_core` directory.
+11. **Translate `section.rb` to `section.rs`**: Based on `section.rb`'s exact content, implement `Section::build`. Fetch visible items, resolve records via `Registry::dispatch_per_source`, clip by `VISIBLE_CAP`, and sort by position, applying search filters if provided. Add `#[cfg(test)] mod tests { ... }` in this file.
+12. **Run Cargo Check**: Ensure the entire crate compiles correctly by running `cargo check` inside `crates/discourse_core`.
+13. **Run tests**: Run `cargo test` in `crates/discourse_core` to make sure all unit tests work successfully.
+14. **Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.**
+15. **Submit**: Submit the changes with branch name and descriptive commit message.

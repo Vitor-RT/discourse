@@ -1,0 +1,13 @@
+[package]
+name = "discourse_core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+html5gum = "0.5.7"
+kuchiki = "0.8.1"
+regex = "1.10.3"
+html-escape = "0.2.13"
+tl = "0.7.7"
+scraper = "0.19.0"
+lazy_static = "1.5.1"

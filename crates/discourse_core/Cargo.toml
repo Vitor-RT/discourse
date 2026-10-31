@@ -1,0 +1,8 @@
+[package]
+name = "discourse_core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+url = "2.5"
+indexmap = "2.0"

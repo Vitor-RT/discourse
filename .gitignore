@@ -155,4 +155,3 @@ frontend/discourse-i18n/src/index.d.ts.map
 target/
 **/target/
 **/*.rs.bk
-

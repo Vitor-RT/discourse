@@ -182,9 +182,9 @@ module Discourse
     require "middleware/crawler_hooks"
     config.middleware.use Middleware::CrawlerHooks
 
-    require "content_security_policy/middleware"
-    config.middleware.swap ActionDispatch::ContentSecurityPolicy::Middleware,
-                           ContentSecurityPolicy::Middleware
+    # require "content_security_policy/middleware"
+    # config.middleware.swap ActionDispatch::ContentSecurityPolicy::Middleware,
+#                           ContentSecurityPolicy::Middleware
 
     require "middleware/csp_script_nonce_injector"
     config.middleware.insert_after(ActionDispatch::Flash, Middleware::CspScriptNonceInjector)

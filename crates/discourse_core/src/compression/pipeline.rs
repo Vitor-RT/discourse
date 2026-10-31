@@ -1,67 +1,57 @@
-use std::fs;
-use std::path::{Path, PathBuf};
-
-use crate::compression::strategy::{ExtractionError, Strategy};
+use std::path::Path;
+use super::strategy::{Strategy, CompressionError};
 
 pub struct Pipeline {
     strategies: Vec<Box<dyn Strategy>>,
-    extension: String,
 }
 
 impl Pipeline {
     pub fn new(strategies: Vec<Box<dyn Strategy>>) -> Self {
-        let extension = strategies
-            .iter()
-            .map(|s| s.extension())
-            .collect::<Vec<_>>()
-            .join("");
-        Self { strategies, extension }
+        Self { strategies }
     }
 }
 
 impl Strategy for Pipeline {
-    fn extension(&self) -> &str {
-        &self.extension
+    fn extension(&self) -> &'static str {
+        ""
     }
 
-    fn compress(&self, path: &Path, target_name: &str) -> Result<String, ExtractionError> {
+    fn can_handle(&self, file_name: &str) -> bool {
+        let combined_extension: String = self.strategies.iter().map(|s| s.extension()).collect();
+        file_name.contains(&combined_extension)
+    }
+
+    fn compress(&self, path: &Path, target_name: &str) -> Result<String, CompressionError> {
         let mut current_target = target_name.to_string();
-        let mut compressed_path = String::new();
+        let mut final_path = String::new();
 
         for strategy in &self.strategies {
-            compressed_path = strategy.compress(path, &current_target)?;
+            let compressed_path = strategy.compress(path, &current_target)?;
             current_target = Path::new(&compressed_path)
                 .file_name()
-                .unwrap()
+                .unwrap_or_default()
                 .to_string_lossy()
-                .into_owned();
+                .to_string();
+            final_path = compressed_path;
         }
 
-        Ok(compressed_path)
+        Ok(final_path)
     }
 
-    fn decompress(
-        &self,
-        dest_path: &Path,
-        compressed_file_path: &Path,
-        max_size: usize,
-    ) -> Result<PathBuf, ExtractionError> {
+    fn decompress(&self, dest_path: &Path, compressed_file_path: &Path, max_size: u64) -> Result<String, CompressionError> {
         let mut to_decompress = compressed_file_path.to_path_buf();
-        let mut first = true;
+        let strategies_rev: Vec<_> = self.strategies.iter().rev().collect();
 
-        for strategy in self.strategies.iter().rev() {
+        for (i, strategy) in strategies_rev.iter().enumerate() {
             let next_compressed_file = strategy.decompress(dest_path, &to_decompress, max_size)?;
 
-            if !first {
-                // Remove intermediate file
-                let _ = fs::remove_file(&to_decompress);
-                let _ = fs::remove_dir_all(&to_decompress);
+            if i > 0 && to_decompress != compressed_file_path && to_decompress.is_file() {
+                let _ = std::fs::remove_file(&to_decompress);
             }
-            first = false;
 
-            to_decompress = next_compressed_file;
+            to_decompress = Path::new(&next_compressed_file).to_path_buf();
         }
 
-        Ok(to_decompress)
+        Ok(to_decompress.to_string_lossy().to_string())
     }
 }

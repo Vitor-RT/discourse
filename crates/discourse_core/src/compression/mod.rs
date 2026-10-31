@@ -6,6 +6,5 @@ pub mod strategy;
 pub mod tar;
 pub mod zip;
 
-pub use engine::CompressionEngine;
-pub use strategy::{ExtractionError, Strategy};
-pub mod ffi;
+pub use engine::Engine;
+pub use strategy::{CompressionError, Strategy};

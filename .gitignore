@@ -150,9 +150,4 @@ frontend/discourse-i18n/src/index.d.ts.map
 /.cursor
 .playwright-mcp
 /frontend/discourse-types/dts-generator.js
-
-# Rust Cargo Build Artifacts
-target/
-**/target/
-**/*.rs.bk
-*.rs.bk
+/crates/discourse_core/target

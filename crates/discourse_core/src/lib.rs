@@ -6,7 +6,6 @@ pub mod browser;
 pub mod compression;
 pub mod csp;
 pub mod demons;
-pub mod design_wizard;
 pub mod logging;
 pub mod text_utils;
 pub mod types;

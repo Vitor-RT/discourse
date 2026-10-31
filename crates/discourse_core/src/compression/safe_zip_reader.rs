@@ -1,200 +1,104 @@
-use std::io::{Read, Seek, Write};
+use std::fs::File;
 use zip::ZipArchive;
+use super::strategy::CompressionError;
 
-#[derive(Debug)]
-pub enum SafeZipError {
-    EntryTooLargeError,
-    MissingEntryError,
-    TooManyEntriesError,
-    SuspiciousEntryError,
-    Io(std::io::Error),
-    ZipError(zip::result::ZipError),
-}
-
-impl From<std::io::Error> for SafeZipError {
-    fn from(err: std::io::Error) -> Self {
-        SafeZipError::Io(err)
-    }
-}
-
-impl From<zip::result::ZipError> for SafeZipError {
-    fn from(err: zip::result::ZipError) -> Self {
-        SafeZipError::ZipError(err)
-    }
-}
-
-pub struct SafeZipReader<R: Read + Seek> {
-    pub archive: ZipArchive<R>,
+pub struct SafeZipReader {
+    pub archive: ZipArchive<File>,
     pub max_entries: Option<usize>,
-    pub max_total_bytes: Option<usize>,
+    pub remaining_total_bytes: Option<u64>,
     pub max_compression_ratio: Option<f64>,
-    pub read_chunk_bytes: usize,
 }
 
-const DEFAULT_READ_CHUNK_BYTES: usize = 16 * 1024;
-
-impl<R: Read + Seek> SafeZipReader<R> {
+impl SafeZipReader {
     pub fn new(
-        archive: ZipArchive<R>,
+        file: File,
         max_entries: Option<usize>,
-        max_total_bytes: Option<usize>,
+        max_total_bytes: Option<u64>,
         max_compression_ratio: Option<f64>,
-    ) -> Result<Self, SafeZipError> {
-        let reader = SafeZipReader {
+    ) -> Result<Self, CompressionError> {
+        let mut archive = ZipArchive::new(file)?;
+
+        if let Some(max_entries) = max_entries {
+            if archive.len() > max_entries {
+                return Err(CompressionError::TooManyEntriesError("Zip archive has too many entries".to_string()));
+            }
+        }
+
+        if let Some(ratio) = max_compression_ratio {
+            for i in 0..archive.len() {
+                let entry = archive.by_index(i)?;
+                let compressed = entry.compressed_size();
+                let uncompressed = entry.size();
+
+                if compressed > 0 && (uncompressed as f64 / compressed as f64) > ratio {
+                    return Err(CompressionError::SuspiciousEntryError(format!("Zip entry {} has suspicious compression ratio", entry.name())));
+                }
+            }
+        }
+
+        Ok(Self {
             archive,
             max_entries,
-            max_total_bytes,
+            remaining_total_bytes: max_total_bytes,
             max_compression_ratio,
-            read_chunk_bytes: DEFAULT_READ_CHUNK_BYTES,
-        };
-        reader.validate()?;
-        Ok(reader)
+        })
     }
 
-    pub fn validate(&self) -> Result<(), SafeZipError> {
-        if let Some(max_entries) = self.max_entries {
-            if self.archive.len() > max_entries {
-                return Err(SafeZipError::TooManyEntriesError);
-            }
-        }
-        Ok(())
+    pub fn len(&self) -> usize {
+        self.archive.len()
     }
 
-    fn entry_limit(max_total_bytes: Option<usize>, max_bytes: usize) -> Result<usize, SafeZipError> {
-        let limit = match max_total_bytes {
-            Some(remaining) => max_bytes.min(remaining),
-            None => max_bytes,
-        };
-        if limit == 0 {
-            return Err(SafeZipError::EntryTooLargeError);
+    pub fn by_index(&mut self, i: usize) -> Result<zip::read::ZipFile<'_, File>, CompressionError> {
+        let entry = self.archive.by_index(i)?;
+
+        if let Some(limit) = self.remaining_total_bytes {
+            if entry.size() > limit {
+                 return Err(CompressionError::EntryTooLargeError(format!("Zip entry {} is too large", entry.name())));
+            }
         }
-        Ok(limit)
+
+        Ok(entry)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+    use zip::write::SimpleFileOptions;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_valid_zip() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("test.zip");
+        let file = File::create(&path).unwrap();
+        let mut zip = zip::ZipWriter::new(file);
+
+        let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
+        zip.start_file("test.txt", options).unwrap();
+        zip.write_all(b"hello world").unwrap();
+        zip.finish().unwrap();
+
+        let file = File::open(&path).unwrap();
+        let reader = SafeZipReader::new(file, Some(10), Some(100), None).unwrap();
+        assert_eq!(reader.len(), 1);
     }
 
-    fn validate_entry_metadata(
-        size: usize,
-        compressed_size: usize,
-        limit: usize,
-        max_compression_ratio: Option<f64>,
-    ) -> Result<(), SafeZipError> {
-        if size > 0 && size > limit {
-            return Err(SafeZipError::EntryTooLargeError);
-        }
+    #[test]
+    fn test_too_many_entries() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("test.zip");
+        let file = File::create(&path).unwrap();
+        let mut zip = zip::ZipWriter::new(file);
 
-        if let Some(max_ratio) = max_compression_ratio {
-            if compressed_size > 0 && size > 0 {
-                if (size as f64 / compressed_size as f64) > max_ratio {
-                    return Err(SafeZipError::SuspiciousEntryError);
-                }
-            }
-        }
+        let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
+        zip.start_file("test.txt", options).unwrap();
+        zip.write_all(b"hello world").unwrap();
+        zip.finish().unwrap();
 
-        Ok(())
-    }
-
-    pub fn read_entry(
-        &mut self,
-        name: &str,
-        max_bytes: usize,
-        required: bool,
-    ) -> Result<Option<Vec<u8>>, SafeZipError> {
-        let mut entry = match self.archive.by_name(name) {
-            Ok(e) => e,
-            Err(zip::result::ZipError::FileNotFound) => {
-                if required {
-                    return Err(SafeZipError::MissingEntryError);
-                }
-                return Ok(None);
-            }
-            Err(e) => return Err(SafeZipError::ZipError(e)),
-        };
-
-        if entry.is_dir() {
-            if required {
-                return Err(SafeZipError::MissingEntryError);
-            }
-            return Ok(None);
-        }
-
-        let size = entry.size() as usize;
-        let compressed_size = entry.compressed_size() as usize;
-
-        let limit = Self::entry_limit(self.max_total_bytes, max_bytes)?;
-        Self::validate_entry_metadata(size, compressed_size, limit, self.max_compression_ratio)?;
-
-        let mut data = Vec::new();
-        let mut bytes_read = 0;
-        let mut buffer = vec![0; self.read_chunk_bytes];
-
-        loop {
-            let n = entry.read(&mut buffer)?;
-            if n == 0 {
-                break;
-            }
-            bytes_read += n;
-            if bytes_read > limit {
-                return Err(SafeZipError::EntryTooLargeError);
-            }
-            data.extend_from_slice(&buffer[..n]);
-        }
-
-        if let Some(ref mut remaining) = self.max_total_bytes {
-            *remaining = remaining.saturating_sub(bytes_read);
-        }
-
-        Ok(Some(data))
-    }
-
-    pub fn stream_entry_to_file<W: Write>(
-        &mut self,
-        name: &str,
-        file: &mut W,
-        max_bytes: usize,
-        required: bool,
-    ) -> Result<(), SafeZipError> {
-        let mut entry = match self.archive.by_name(name) {
-            Ok(e) => e,
-            Err(zip::result::ZipError::FileNotFound) => {
-                if required {
-                    return Err(SafeZipError::MissingEntryError);
-                }
-                return Ok(());
-            }
-            Err(e) => return Err(SafeZipError::ZipError(e)),
-        };
-
-        if entry.is_dir() {
-            if required {
-                return Err(SafeZipError::MissingEntryError);
-            }
-            return Ok(());
-        }
-
-        let size = entry.size() as usize;
-        let compressed_size = entry.compressed_size() as usize;
-
-        let limit = Self::entry_limit(self.max_total_bytes, max_bytes)?;
-        Self::validate_entry_metadata(size, compressed_size, limit, self.max_compression_ratio)?;
-
-        let mut bytes_read = 0;
-        let mut buffer = vec![0; self.read_chunk_bytes];
-
-        loop {
-            let n = entry.read(&mut buffer)?;
-            if n == 0 {
-                break;
-            }
-            bytes_read += n;
-            if bytes_read > limit {
-                return Err(SafeZipError::EntryTooLargeError);
-            }
-            file.write_all(&buffer[..n]).map_err(SafeZipError::Io)?;
-        }
-
-        if let Some(ref mut remaining) = self.max_total_bytes {
-            *remaining = remaining.saturating_sub(bytes_read);
-        }
-
-        Ok(())
+        let file = File::open(&path).unwrap();
+        let result = SafeZipReader::new(file, Some(0), Some(100), None);
+        assert!(matches!(result, Err(CompressionError::TooManyEntriesError(_))));
     }
 }

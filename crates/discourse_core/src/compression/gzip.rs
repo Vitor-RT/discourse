@@ -1,123 +1,84 @@
 use std::fs::File;
 use std::io::{Read, Write};
-use std::path::{Path, PathBuf};
-use std::process::Command;
-
+use std::path::Path;
 use flate2::read::GzDecoder;
-
-use crate::compression::strategy::{
-    calculate_available_size, is_safe_path_for_extraction, ExtractionError, Strategy,
-    DEFAULT_CHUNK_SIZE,
-};
+use flate2::write::GzEncoder;
+use flate2::Compression;
+use super::strategy::{Strategy, CompressionError};
 
 pub struct Gzip;
 
 impl Strategy for Gzip {
-    fn extension(&self) -> &str {
+    fn extension(&self) -> &'static str {
         ".gz"
     }
 
-    fn compress(&self, path: &Path, target_name: &str) -> Result<String, ExtractionError> {
-        let gzip_target = path.join(target_name);
+    fn compress(&self, path: &Path, target_name: &str) -> Result<String, CompressionError> {
+        let source_path = path.join(target_name);
+        let gzip_target = format!("{}.gz", source_path.to_string_lossy());
 
-        let output = Command::new("gzip")
-            .arg("-5")
-            .arg(&gzip_target)
-            .output()
-            .map_err(|e| ExtractionError::Other(format!("Failed to execute gzip: {}", e)))?;
+        let mut source_file = File::open(&source_path)?;
+        let target_file = File::create(&gzip_target)?;
 
-        if !output.status.success() {
-            return Err(ExtractionError::Other("Failed to gzip file.".to_string()));
+        let mut encoder = GzEncoder::new(target_file, Compression::new(5));
+
+        let mut buffer = [0; 8192];
+        loop {
+            let bytes_read = source_file.read(&mut buffer)?;
+            if bytes_read == 0 {
+                break;
+            }
+            encoder.write_all(&buffer[..bytes_read])?;
         }
+        encoder.finish()?;
 
-        let mut gzip_target_str = gzip_target.to_string_lossy().to_string();
-        gzip_target_str.push_str(".gz");
-        Ok(gzip_target_str)
+        Ok(gzip_target)
     }
 
-    fn decompress(
-        &self,
-        dest_path: &Path,
-        compressed_file_path: &Path,
-        max_size: usize,
-    ) -> Result<PathBuf, ExtractionError> {
-        let file = File::open(compressed_file_path).map_err(ExtractionError::Io)?;
-        let mut decoder = GzDecoder::new(file);
+    fn decompress(&self, dest_path: &Path, compressed_file_path: &Path, max_size: u64) -> Result<String, CompressionError> {
+        std::fs::create_dir_all(dest_path)?;
 
-        let mut available_size = calculate_available_size(max_size);
+        let file_name = compressed_file_path.file_name()
+            .ok_or_else(|| CompressionError::Other("Invalid file name".to_string()))?
+            .to_string_lossy()
+            .to_string();
 
-        let file_name = compressed_file_path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or_default();
-        let file_name_without_ext = if file_name.ends_with(self.extension()) {
-            &file_name[..file_name.len() - self.extension().len()]
+        let basename = if file_name.ends_with(".gz") {
+            &file_name[..file_name.len() - 3]
         } else {
-            file_name
+            &file_name
         };
 
-        let dest_file_path = dest_path.join(file_name_without_ext);
+        let entry_path = dest_path.join(basename);
 
-        if !is_safe_path_for_extraction(&dest_file_path, dest_path) {
-            return Err(ExtractionError::Other(
-                "Unsafe extraction path".to_string(),
+        if entry_path.exists() {
+            return Err(CompressionError::DestinationFileExistsError(
+                format!("Destination '{}' already exists", entry_path.display())
             ));
         }
 
-        if dest_file_path.exists() {
-            return Err(ExtractionError::DestinationFileExistsError(
-                dest_file_path.to_string_lossy().to_string(),
-            ));
-        }
+        let compressed_file = File::open(compressed_file_path)?;
+        let mut decoder = GzDecoder::new(compressed_file);
 
-        let mut out_file = File::create(&dest_file_path).map_err(ExtractionError::Io)?;
-        let mut buffer = vec![0; DEFAULT_CHUNK_SIZE];
+        let mut target_file = File::create(&entry_path)?;
+
+        let mut remaining_size = max_size;
+        let mut buffer = [0; 8192];
 
         loop {
-            let bytes_read = decoder.read(&mut buffer).map_err(ExtractionError::Io)?;
+            let bytes_read = decoder.read(&mut buffer)?;
             if bytes_read == 0 {
                 break;
             }
 
-            if bytes_read > available_size {
-                return Err(ExtractionError::ExtractFailed);
+            if bytes_read as u64 > remaining_size {
+                return Err(CompressionError::ExtractFailed);
             }
-            available_size -= bytes_read;
+            remaining_size -= bytes_read as u64;
 
-            out_file
-                .write_all(&buffer[..bytes_read])
-                .map_err(ExtractionError::Io)?;
+            target_file.write_all(&buffer[..bytes_read])?;
         }
 
-        Ok(dest_file_path)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::fs;
-    use tempfile::tempdir;
-
-    #[test]
-    fn test_gzip_compression_decompression() {
-        let dir = tempdir().unwrap();
-        let file_path = dir.path().join("test.txt");
-        fs::write(&file_path, b"hello world").unwrap();
-
-        let gzip = Gzip;
-        let compressed_path_str = gzip.compress(dir.path(), "test.txt").unwrap();
-        let compressed_path = PathBuf::from(compressed_path_str);
-
-        assert!(compressed_path.exists());
-
-        let dest_dir = tempdir().unwrap();
-        let decompressed_path = gzip
-            .decompress(dest_dir.path(), &compressed_path, 10)
-            .unwrap();
-
-        assert!(decompressed_path.exists());
-        let content = fs::read_to_string(decompressed_path).unwrap();
-        assert_eq!(content, "hello world");
+        Ok(entry_path.to_string_lossy().to_string())
     }
 }

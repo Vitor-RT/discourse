@@ -47,20 +47,12 @@ impl SafeExec {
         if !success_status_codes.contains(&status) {
             let mut message = command.join(" ");
             if !failure_message.is_empty() {
-<<<<<<< HEAD
                 message.push('\n');
-=======
-                message.push_str("\n");
->>>>>>> origin/rust-migration-7847495834899956704
                 message.push_str(failure_message);
             }
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             if !stderr.is_empty() {
-<<<<<<< HEAD
                 message.push('\n');
-=======
-                message.push_str("\n");
->>>>>>> origin/rust-migration-7847495834899956704
                 message.push_str(&stderr);
             }
 
@@ -76,7 +68,6 @@ impl SafeExec {
     }
 
     pub fn landlock_supported() -> bool {
-        // Mock landlock support checking
         false
     }
 
@@ -128,7 +119,6 @@ mod tests {
     #[test]
     fn test_existing_paths() {
         let paths = SafeExec::existing_paths(&["/bin", "/does_not_exist"]);
-        // Assume /bin exists on test environment
         assert!(paths.contains(&"/bin".to_string()));
         assert!(!paths.contains(&"/does_not_exist".to_string()));
     }

@@ -1,9 +1,4 @@
-use std::cmp;
-
-const DEFAULT_COMPARISON_BUDGET_FACTOR: usize = 200;
-const MAX_COMPARISON_BUDGET: usize = 2_000_000;
-
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Operation {
     Add,
     Delete,
@@ -18,37 +13,47 @@ pub struct DiffLimitExceeded {
     pub right_size: usize,
 }
 
+impl std::fmt::Display for DiffLimitExceeded {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Diff limit exceeded: {} comparisons used out of budget {}",
+            self.comparisons_used, self.comparison_budget
+        )
+    }
+}
+
+impl std::error::Error for DiffLimitExceeded {}
+
 pub struct ONPDiff<'a> {
-    a: Vec<&'a str>,
-    b: Vec<&'a str>,
+    a: &'a [&'a str],
+    b: &'a [&'a str],
     m: usize,
     n: usize,
     reverse: bool,
     offset: usize,
     delta: isize,
+    path: Vec<isize>,
+    backtrack: Vec<(usize, usize, isize)>,
     comparison_budget: usize,
     comparisons_used: usize,
-    backtrack: Vec<(usize, usize, isize)>,
-    path: Vec<isize>,
 }
 
 impl<'a> ONPDiff<'a> {
-    pub fn new(mut a: Vec<&'a str>, mut b: Vec<&'a str>) -> Self {
-        let mut m = a.len();
-        let mut n = b.len();
+    pub fn new(a: &'a [&'a str], b: &'a [&'a str], comparison_budget: usize) -> Self {
+        let (a, b, reverse) = if a.len() > b.len() {
+            (b, a, true)
+        } else {
+            (a, b, false)
+        };
 
-        let reverse = m > n;
-        if reverse {
-            std::mem::swap(&mut a, &mut b);
-            std::mem::swap(&mut m, &mut n);
-        }
-
+        let m = a.len();
+        let n = b.len();
         let offset = m + 1;
-        let delta = (n as isize) - (m as isize);
-        let comparison_budget = cmp::min(
-            DEFAULT_COMPARISON_BUDGET_FACTOR * (m + n),
-            MAX_COMPARISON_BUDGET,
-        );
+        let delta = n as isize - m as isize;
+
+        let path_size = m + n + 3;
+        let path = vec![-1; path_size];
 
         Self {
             a,
@@ -58,43 +63,36 @@ impl<'a> ONPDiff<'a> {
             reverse,
             offset,
             delta,
+            path,
+            backtrack: Vec::new(),
             comparison_budget,
             comparisons_used: 0,
-            backtrack: Vec::new(),
-            path: Vec::new(),
         }
     }
 
     pub fn diff(&mut self) -> Result<Vec<(String, Operation)>, DiffLimitExceeded> {
-        let path = self.compose()?;
-        Ok(self.build_edit_script(&path))
+        let shortest_path = self.compose()?;
+        Ok(self.build_edit_script(&shortest_path))
     }
 
     pub fn short_diff(&mut self) -> Result<Vec<(String, Operation)>, DiffLimitExceeded> {
-        let path = self.compose()?;
-        Ok(self.build_short_edit_script(&path))
+        let shortest_path = self.compose()?;
+        Ok(self.build_short_edit_script(&shortest_path))
     }
 
     pub fn paragraph_diff(&mut self) -> Result<Vec<(String, Operation)>, DiffLimitExceeded> {
-        let diff = self.diff()?;
-        Ok(self.build_paragraph_edit_script(&diff))
+        let ses = self.short_diff()?;
+        Ok(self.build_paragraph_edit_script(&ses))
     }
 
     fn compose(&mut self) -> Result<Vec<(usize, usize)>, DiffLimitExceeded> {
-        let size = self.m + self.n + 3;
-        let mut fp = vec![-1isize; size];
-        self.path = vec![-1isize; size];
+        let fp_size = self.m + self.n + 3;
+        let mut fp = vec![-1; fp_size];
 
-        let mut p = -1isize;
+        let mut p = 0;
         loop {
-            p += 1;
-
-            let mut k = -p;
-<<<<<<< HEAD
-            while k < self.delta {
-=======
+            let mut k = -(p as isize);
             while k <= self.delta - 1 {
->>>>>>> origin/rust-migration-7847495834899956704
                 fp[(k + self.offset as isize) as usize] = self.snake(
                     k,
                     fp[(k - 1 + self.offset as isize) as usize] + 1,
@@ -104,11 +102,7 @@ impl<'a> ONPDiff<'a> {
             }
 
             k = self.delta + p;
-<<<<<<< HEAD
-            while k > self.delta {
-=======
             while k >= self.delta + 1 {
->>>>>>> origin/rust-migration-7847495834899956704
                 fp[(k + self.offset as isize) as usize] = self.snake(
                     k,
                     fp[(k - 1 + self.offset as isize) as usize] + 1,
@@ -126,6 +120,8 @@ impl<'a> ONPDiff<'a> {
             if fp[(self.delta + self.offset as isize) as usize] as usize == self.n {
                 break;
             }
+
+            p += 1;
         }
 
         let mut r = self.path[(self.delta + self.offset as isize) as usize];

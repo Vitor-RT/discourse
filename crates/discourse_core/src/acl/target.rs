@@ -1,157 +1,212 @@
 use std::collections::{HashMap, HashSet};
 
-use super::permissions;
-
-#[derive(Debug, Clone, Default)]
-pub struct PermissionIds {
-    pub group_ids: Vec<u64>,
-    pub user_ids: Vec<u64>,
-}
+use super::permissions::{
+    is_valid_permission_name, normalize_permission_name, normalize_permission_names,
+};
+use super::user::AclUser;
 
 #[derive(Debug, Clone)]
 pub struct TargetAclItem {
-    pub acl_type: String, // "group" or "user"
+    pub acl_type: String,
     pub id: u64,
     pub permission: String,
     pub target_type: String,
     pub target_id: u64,
 }
 
-#[derive(Debug, Clone)]
-pub struct Target {
-    pub group_lookup: HashMap<u64, Vec<String>>,
-    pub user_lookup: HashMap<u64, Vec<String>>,
-    pub permission_lookup: HashMap<String, PermissionIds>,
+#[derive(Debug, Clone, Default)]
+pub struct TargetAcl {
+    pub group_permissions: HashMap<String, HashSet<u64>>,
+    pub user_permissions: HashMap<String, HashSet<u64>>,
 }
 
-impl Target {
-    pub fn new(flattened_acl_list: Vec<TargetAclItem>) -> Self {
-        let mut group_lookup: HashMap<u64, Vec<String>> = HashMap::new();
-        let mut user_lookup: HashMap<u64, Vec<String>> = HashMap::new();
-        let mut permission_lookup: HashMap<String, PermissionIds> = HashMap::new();
+impl TargetAcl {
+    pub fn new() -> Self {
+        Self::default()
+    }
 
-        for acl in flattened_acl_list {
-            let p_ids = permission_lookup.entry(acl.permission.clone()).or_default();
+    pub fn group_has_permission(&self, group: u64, permission: &str) -> bool {
+        let perm = normalize_permission_name(permission);
+        if !is_valid_permission_name(&perm) {
+            return false;
+        }
 
-            if acl.acl_type == "group" {
-                group_lookup
-                    .entry(acl.id)
-                    .or_default()
-                    .push(acl.permission.clone());
-                p_ids.group_ids.push(acl.id);
-            }
-
-            if acl.acl_type == "user" {
-                user_lookup
-                    .entry(acl.id)
-                    .or_default()
-                    .push(acl.permission.clone());
-                p_ids.user_ids.push(acl.id);
+        if let Some(groups) = self.group_permissions.get("owner") {
+            if groups.contains(&group) {
+                return true;
             }
         }
 
-        Self {
-            group_lookup,
-            user_lookup,
-            permission_lookup,
+        if let Some(groups) = self.group_permissions.get(&perm) {
+            if groups.contains(&group) {
+                return true;
+            }
         }
+
+        false
     }
 
-    pub fn group_has_permission(&self, group_id: u64, permission: &str) -> bool {
-        self.group_lookup
-            .get(&group_id)
-            .map(|perms| perms.contains(&permission.to_string()))
-            .unwrap_or(false)
-    }
+    pub fn group_has_any_permission(&self, group: u64, permissions: &[&str]) -> bool {
+        let perms = normalize_permission_names(permissions);
 
-    pub fn group_has_any_permission(&self, group_id: u64, permissions: &[&str]) -> bool {
-        self.group_lookup
-            .get(&group_id)
-            .map(|perms| perms.iter().any(|p| permissions.contains(&p.as_str())))
-            .unwrap_or(false)
-    }
+        if let Some(groups) = self.group_permissions.get("owner") {
+            if groups.contains(&group) {
+                return true;
+            }
+        }
 
-    pub fn permission_group_ids(&self, permission: &str) -> Vec<u64> {
-        self.permission_lookup
-            .get(permission)
-            .map(|p_ids| p_ids.group_ids.clone())
-            .unwrap_or_default()
-    }
-
-    pub fn group_ids_with_any_permission(&self, permissions: &[&str]) -> Vec<u64> {
-        let mut ids = HashSet::new();
-        for &perm in permissions {
-            if let Some(p_ids) = self.permission_lookup.get(perm) {
-                for &id in &p_ids.group_ids {
-                    ids.insert(id);
+        for perm in perms {
+            if is_valid_permission_name(&perm) {
+                if let Some(groups) = self.group_permissions.get(&perm) {
+                    if groups.contains(&group) {
+                        return true;
+                    }
                 }
             }
         }
-        let mut vec = ids.into_iter().collect::<Vec<_>>();
-        vec.sort_unstable(); // For stable returns
-        vec
+
+        false
+    }
+
+    pub fn permission_group_ids(&self, permission: &str) -> Vec<u64> {
+        let perm = normalize_permission_name(permission);
+        if !is_valid_permission_name(&perm) {
+            return Vec::new();
+        }
+
+        let mut group_ids = HashSet::new();
+
+        if let Some(groups) = self.group_permissions.get("owner") {
+            group_ids.extend(groups);
+        }
+
+        if let Some(groups) = self.group_permissions.get(&perm) {
+            group_ids.extend(groups);
+        }
+
+        let mut result: Vec<u64> = group_ids.into_iter().collect();
+        result.sort_unstable();
+        result
+    }
+
+    pub fn group_ids_with_any_permission(&self, permissions: &[&str]) -> Vec<u64> {
+        let perms = normalize_permission_names(permissions);
+        let mut group_ids = HashSet::new();
+
+        if let Some(groups) = self.group_permissions.get("owner") {
+            group_ids.extend(groups);
+        }
+
+        for perm in perms {
+            if is_valid_permission_name(&perm) {
+                if let Some(groups) = self.group_permissions.get(&perm) {
+                    group_ids.extend(groups);
+                }
+            }
+        }
+
+        let mut result: Vec<u64> = group_ids.into_iter().collect();
+        result.sort_unstable();
+        result
     }
 
     pub fn user_has_permission(&self, user_id: u64, permission: &str) -> bool {
-        self.user_lookup
-            .get(&user_id)
-            .map(|perms| {
-                perms.contains(&permission.to_string())
-                    || perms.contains(&permissions::OWNER.to_string())
-            })
-            .unwrap_or(false)
+        let perm = normalize_permission_name(permission);
+        if !is_valid_permission_name(&perm) {
+            return false;
+        }
+
+        if let Some(users) = self.user_permissions.get("owner") {
+            if users.contains(&user_id) {
+                return true;
+            }
+        }
+
+        if let Some(users) = self.user_permissions.get(&perm) {
+            if users.contains(&user_id) {
+                return true;
+            }
+        }
+
+        false
     }
 
-    pub fn user_has_any_permission(&self, user_id: u64, perms: &[&str]) -> bool {
-        self.user_lookup
-            .get(&user_id)
-            .map(|user_perms| {
-                user_perms.contains(&permissions::OWNER.to_string())
-                    || user_perms.iter().any(|p| perms.contains(&p.as_str()))
-            })
-            .unwrap_or(false)
+    pub fn user_has_any_permission(&self, user_id: u64, permissions: &[&str]) -> bool {
+        let perms = normalize_permission_names(permissions);
+
+        if let Some(users) = self.user_permissions.get("owner") {
+            if users.contains(&user_id) {
+                return true;
+            }
+        }
+
+        for perm in perms {
+            if is_valid_permission_name(&perm) {
+                if let Some(users) = self.user_permissions.get(&perm) {
+                    if users.contains(&user_id) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        false
     }
 
     pub fn permission_user_ids(&self, permission: &str) -> Vec<u64> {
-        let user_ids = self
-            .permission_lookup
-            .get(permission)
-            .map(|p_ids| p_ids.user_ids.clone())
-            .unwrap_or_default();
-
-        if permission == permissions::OWNER {
-            return user_ids;
+        let perm = normalize_permission_name(permission);
+        if !is_valid_permission_name(&perm) {
+            return Vec::new();
         }
 
-        let owner_user_ids = self
-            .permission_lookup
-            .get(permissions::OWNER)
-            .map(|p_ids| p_ids.user_ids.clone())
-            .unwrap_or_default();
+        let mut user_ids = HashSet::new();
 
-        let mut all_ids = HashSet::new();
-        for id in user_ids {
-            all_ids.insert(id);
-        }
-        for id in owner_user_ids {
-            all_ids.insert(id);
+        if let Some(users) = self.user_permissions.get("owner") {
+            user_ids.extend(users);
         }
 
-        let mut vec = all_ids.into_iter().collect::<Vec<_>>();
-        vec.sort_unstable();
-        vec
+        if let Some(users) = self.user_permissions.get(&perm) {
+            user_ids.extend(users);
+        }
+
+        let mut result: Vec<u64> = user_ids.into_iter().collect();
+        result.sort_unstable();
+        result
     }
 
-    pub fn user_ids_with_any_permission(&self, perms: &[&str]) -> Vec<u64> {
-        let mut all_ids = HashSet::new();
-        for &perm in perms {
-            for id in self.permission_user_ids(perm) {
-                all_ids.insert(id);
+    pub fn user_ids_with_any_permission(&self, permissions: &[&str]) -> Vec<u64> {
+        let perms = normalize_permission_names(permissions);
+        let mut user_ids = HashSet::new();
+
+        if let Some(users) = self.user_permissions.get("owner") {
+            user_ids.extend(users);
+        }
+
+        for perm in perms {
+            if is_valid_permission_name(&perm) {
+                if let Some(users) = self.user_permissions.get(&perm) {
+                    user_ids.extend(users);
+                }
             }
         }
-        let mut vec = all_ids.into_iter().collect::<Vec<_>>();
-        vec.sort_unstable();
-        vec
+
+        let mut result: Vec<u64> = user_ids.into_iter().collect();
+        result.sort_unstable();
+        result
+    }
+
+    pub fn user_has_permission_via_group(&self, user: &dyn AclUser, permission: &str) -> bool {
+        let group_ids = self.permission_group_ids(permission);
+        user.group_ids().iter().any(|g| group_ids.contains(g))
+    }
+
+    pub fn user_has_any_permission_via_group(
+        &self,
+        user: &dyn AclUser,
+        permissions: &[&str],
+    ) -> bool {
+        let group_ids = self.group_ids_with_any_permission(permissions);
+        user.group_ids().iter().any(|g| group_ids.contains(g))
     }
 }
 
@@ -159,60 +214,34 @@ impl Target {
 mod tests {
     use super::*;
 
-    fn setup_acl() -> Target {
-        Target::new(vec![
-<<<<<<< HEAD
-            TargetAclItem {
-                acl_type: "group".to_string(),
-                id: 1,
-                permission: "view".to_string(),
-                target_type: "Category".to_string(),
-                target_id: 5,
-            },
-            TargetAclItem {
-                acl_type: "group".to_string(),
-                id: 1,
-                permission: "edit".to_string(),
-                target_type: "Category".to_string(),
-                target_id: 5,
-            },
-            TargetAclItem {
-                acl_type: "group".to_string(),
-                id: 22,
-                permission: "view".to_string(),
-                target_type: "Category".to_string(),
-                target_id: 5,
-            },
-            TargetAclItem {
-                acl_type: "user".to_string(),
-                id: 2,
-                permission: "manage".to_string(),
-                target_type: "Category".to_string(),
-                target_id: 5,
-            },
-            TargetAclItem {
-                acl_type: "user".to_string(),
-                id: 99,
-                permission: "view".to_string(),
-                target_type: "Category".to_string(),
-                target_id: 5,
-            },
-            TargetAclItem {
-                acl_type: "user".to_string(),
-                id: 3,
-                permission: "owner".to_string(),
-                target_type: "Category".to_string(),
-                target_id: 5,
-            },
-=======
-            TargetAclItem { acl_type: "group".to_string(), id: 1, permission: "view".to_string(), target_type: "Category".to_string(), target_id: 5 },
-            TargetAclItem { acl_type: "group".to_string(), id: 1, permission: "edit".to_string(), target_type: "Category".to_string(), target_id: 5 },
-            TargetAclItem { acl_type: "group".to_string(), id: 22, permission: "view".to_string(), target_type: "Category".to_string(), target_id: 5 },
-            TargetAclItem { acl_type: "user".to_string(), id: 2, permission: "manage".to_string(), target_type: "Category".to_string(), target_id: 5 },
-            TargetAclItem { acl_type: "user".to_string(), id: 99, permission: "view".to_string(), target_type: "Category".to_string(), target_id: 5 },
-            TargetAclItem { acl_type: "user".to_string(), id: 3, permission: "owner".to_string(), target_type: "Category".to_string(), target_id: 5 },
->>>>>>> origin/rust-migration-7847495834899956704
-        ])
+    fn setup_acl() -> TargetAcl {
+        let mut acl = TargetAcl::new();
+
+        let mut view_groups = HashSet::new();
+        view_groups.insert(1);
+        acl.group_permissions.insert("view".to_string(), view_groups);
+
+        let mut edit_groups = HashSet::new();
+        edit_groups.insert(1);
+        acl.group_permissions.insert("edit".to_string(), edit_groups);
+
+        let mut owner_groups = HashSet::new();
+        owner_groups.insert(22);
+        acl.group_permissions.insert("owner".to_string(), owner_groups);
+
+        let mut manage_users = HashSet::new();
+        manage_users.insert(2);
+        acl.user_permissions.insert("manage".to_string(), manage_users);
+
+        let mut view_users = HashSet::new();
+        view_users.insert(99);
+        acl.user_permissions.insert("view".to_string(), view_users);
+
+        let mut owner_users = HashSet::new();
+        owner_users.insert(3);
+        acl.user_permissions.insert("owner".to_string(), owner_users);
+
+        acl
     }
 
     #[test]
@@ -220,17 +249,20 @@ mod tests {
         let acl = setup_acl();
         assert!(acl.group_has_permission(1, "view"));
         assert!(acl.group_has_permission(1, "edit"));
-        assert!(!acl.group_has_permission(22, "edit"));
-        assert!(!acl.group_has_permission(123456, "view"));
-        assert!(!acl.group_has_permission(99, "manage"));
+        assert!(!acl.group_has_permission(1, "manage"));
+        assert!(!acl.group_has_permission(99, "view"));
+
+        assert!(acl.group_has_permission(22, "view"));
+        assert!(acl.group_has_permission(22, "manage"));
     }
 
     #[test]
     fn test_group_has_any_permission() {
         let acl = setup_acl();
-        assert!(acl.group_has_any_permission(1, &["manage", "edit"]));
-        assert!(!acl.group_has_any_permission(22, &["edit", "manage"]));
-        assert!(!acl.group_has_any_permission(123456, &["view", "edit"]));
+        assert!(acl.group_has_any_permission(1, &["view", "manage"]));
+        assert!(!acl.group_has_any_permission(99, &["view", "manage"]));
+
+        assert!(acl.group_has_any_permission(22, &["manage", "own"]));
     }
 
     #[test]
@@ -240,27 +272,15 @@ mod tests {
         view_ids.sort();
         assert_eq!(view_ids, vec![1, 22]);
 
-        assert_eq!(acl.permission_group_ids("edit"), vec![1]);
-        assert_eq!(acl.permission_group_ids("manage"), vec![] as Vec<u64>);
-        assert_eq!(acl.permission_group_ids("own"), vec![] as Vec<u64>);
+        assert_eq!(acl.permission_group_ids("edit"), vec![1, 22]);
+        assert_eq!(acl.permission_group_ids("manage"), vec![22]);
     }
 
     #[test]
     fn test_group_ids_with_any_permission() {
         let acl = setup_acl();
-<<<<<<< HEAD
-        assert_eq!(
-            acl.group_ids_with_any_permission(&["view", "edit"]),
-            vec![1, 22]
-        );
-        assert_eq!(
-            acl.group_ids_with_any_permission(&["view", "own"]),
-            vec![1, 22]
-        );
-=======
         assert_eq!(acl.group_ids_with_any_permission(&["view", "edit"]), vec![1, 22]);
         assert_eq!(acl.group_ids_with_any_permission(&["view", "own"]), vec![1, 22]);
->>>>>>> origin/rust-migration-7847495834899956704
     }
 
     #[test]
@@ -269,9 +289,8 @@ mod tests {
         assert!(acl.user_has_permission(2, "manage"));
         assert!(!acl.user_has_permission(99, "manage"));
         assert!(!acl.user_has_permission(123456, "view"));
-        assert!(!acl.user_has_permission(1, "edit")); // non user entry
+        assert!(!acl.user_has_permission(1, "edit"));
 
-        // owner grants every permission
         assert!(acl.user_has_permission(3, "view"));
         assert!(acl.user_has_permission(3, "manage"));
     }
@@ -283,7 +302,6 @@ mod tests {
         assert!(!acl.user_has_any_permission(99, &["edit", "manage"]));
         assert!(!acl.user_has_any_permission(123456, &["view", "manage"]));
 
-        // owner grants any requested permission
         assert!(acl.user_has_any_permission(3, &["edit", "manage"]));
     }
 
@@ -300,18 +318,7 @@ mod tests {
     #[test]
     fn test_user_ids_with_any_permission() {
         let acl = setup_acl();
-<<<<<<< HEAD
-        assert_eq!(
-            acl.user_ids_with_any_permission(&["view", "manage"]),
-            vec![2, 3, 99]
-        );
-        assert_eq!(
-            acl.user_ids_with_any_permission(&["view", "own"]),
-            vec![3, 99]
-        );
-=======
         assert_eq!(acl.user_ids_with_any_permission(&["view", "manage"]), vec![2, 3, 99]);
         assert_eq!(acl.user_ids_with_any_permission(&["view", "own"]), vec![3, 99]);
->>>>>>> origin/rust-migration-7847495834899956704
     }
 }

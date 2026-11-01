@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-use super::strategy::{CompressionError, Strategy};
-use flate2::read::GzDecoder;
-use flate2::write::GzEncoder;
-use flate2::Compression;
-use std::fs::File;
-use std::io::{Read, Write};
-use std::path::Path;
-=======
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
@@ -14,7 +5,6 @@ use flate2::read::GzDecoder;
 use flate2::write::GzEncoder;
 use flate2::Compression;
 use super::strategy::{Strategy, CompressionError};
->>>>>>> origin/rust-migration-7847495834899956704
 
 pub struct Gzip;
 
@@ -45,7 +35,6 @@ impl Strategy for Gzip {
         Ok(gzip_target)
     }
 
-<<<<<<< HEAD
     fn decompress(
         &self,
         dest_path: &Path,
@@ -56,12 +45,6 @@ impl Strategy for Gzip {
 
         let file_name = compressed_file_path
             .file_name()
-=======
-    fn decompress(&self, dest_path: &Path, compressed_file_path: &Path, max_size: u64) -> Result<String, CompressionError> {
-        std::fs::create_dir_all(dest_path)?;
-
-        let file_name = compressed_file_path.file_name()
->>>>>>> origin/rust-migration-7847495834899956704
             .ok_or_else(|| CompressionError::Other("Invalid file name".to_string()))?
             .to_string_lossy()
             .to_string();
@@ -75,16 +58,10 @@ impl Strategy for Gzip {
         let entry_path = dest_path.join(basename);
 
         if entry_path.exists() {
-<<<<<<< HEAD
             return Err(CompressionError::DestinationFileExistsError(format!(
                 "Destination '{}' already exists",
                 entry_path.display()
             )));
-=======
-            return Err(CompressionError::DestinationFileExistsError(
-                format!("Destination '{}' already exists", entry_path.display())
-            ));
->>>>>>> origin/rust-migration-7847495834899956704
         }
 
         let compressed_file = File::open(compressed_file_path)?;

@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-use super::strategy::{CompressionError, Strategy};
-use std::path::Path;
-=======
 use std::path::Path;
 use super::strategy::{Strategy, CompressionError};
->>>>>>> origin/rust-migration-7847495834899956704
 
 pub struct Pipeline {
     strategies: Vec<Box<dyn Strategy>>,
@@ -43,16 +38,7 @@ impl Strategy for Pipeline {
         Ok(final_path)
     }
 
-<<<<<<< HEAD
-    fn decompress(
-        &self,
-        dest_path: &Path,
-        compressed_file_path: &Path,
-        max_size: u64,
-    ) -> Result<String, CompressionError> {
-=======
     fn decompress(&self, dest_path: &Path, compressed_file_path: &Path, max_size: u64) -> Result<String, CompressionError> {
->>>>>>> origin/rust-migration-7847495834899956704
         let mut to_decompress = compressed_file_path.to_path_buf();
         let strategies_rev: Vec<_> = self.strategies.iter().rev().collect();
 

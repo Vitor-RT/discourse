@@ -1,18 +1,9 @@
-<<<<<<< HEAD
-use super::gzip::Gzip;
-use super::pipeline::Pipeline;
-use super::strategy::{CompressionError, Strategy};
-use super::tar::Tar;
-use super::zip::Zip;
-use std::path::Path;
-=======
 use std::path::Path;
 use super::strategy::{Strategy, CompressionError};
 use super::zip::Zip;
 use super::tar::Tar;
 use super::gzip::Gzip;
 use super::pipeline::Pipeline;
->>>>>>> origin/rust-migration-7847495834899956704
 
 pub struct Engine {
     strategy: Box<dyn Strategy>,
@@ -47,7 +38,6 @@ impl Engine {
         self.strategy.compress(path, target_name)
     }
 
-<<<<<<< HEAD
     pub fn decompress(
         &self,
         dest_path: &Path,
@@ -56,10 +46,6 @@ impl Engine {
     ) -> Result<String, CompressionError> {
         self.strategy
             .decompress(dest_path, compressed_file_path, max_size)
-=======
-    pub fn decompress(&self, dest_path: &Path, compressed_file_path: &Path, max_size: u64) -> Result<String, CompressionError> {
-        self.strategy.decompress(dest_path, compressed_file_path, max_size)
->>>>>>> origin/rust-migration-7847495834899956704
     }
 }
 
@@ -73,14 +59,10 @@ mod tests {
     #[test]
     fn test_unsupported_file_extension() {
         let result = Engine::engine_for("a_file.crazyext");
-<<<<<<< HEAD
         assert!(matches!(
             result,
             Err(CompressionError::UnsupportedFileExtension)
         ));
-=======
-        assert!(matches!(result, Err(CompressionError::UnsupportedFileExtension)));
->>>>>>> origin/rust-migration-7847495834899956704
     }
 
     #[test]
@@ -101,34 +83,24 @@ mod tests {
 
         let engine = Engine::engine_for("test_zip.zip").unwrap();
 
-        // compress
         let compressed_path = engine.compress(dir.path(), folder_name).unwrap();
         assert!(Path::new(&compressed_path).exists());
 
         fs::remove_dir_all(&folder_path).unwrap();
 
-        // decompress
         let extract_location = dir.path().join("extract_location");
-<<<<<<< HEAD
         engine
             .decompress(&extract_location, Path::new(&compressed_path), 10_000_000)
             .unwrap();
-=======
-        engine.decompress(&extract_location, Path::new(&compressed_path), 10_000_000).unwrap();
->>>>>>> origin/rust-migration-7847495834899956704
 
         let extracted_hello = extract_location.join("hello.txt");
         assert_eq!(fs::read_to_string(extracted_hello).unwrap(), "hello world");
 
         let extracted_inner = extract_location.join("a").join("inner");
-<<<<<<< HEAD
         assert_eq!(
             fs::read_to_string(extracted_inner).unwrap(),
             "hello world inner"
         );
-=======
-        assert_eq!(fs::read_to_string(extracted_inner).unwrap(), "hello world inner");
->>>>>>> origin/rust-migration-7847495834899956704
     }
 
     #[test]
@@ -155,25 +127,17 @@ mod tests {
         fs::remove_dir_all(&folder_path).unwrap();
 
         let extract_location = dir.path().join("extract_location");
-<<<<<<< HEAD
         engine
             .decompress(&extract_location, Path::new(&compressed_path), 10_000_000)
             .unwrap();
-=======
-        engine.decompress(&extract_location, Path::new(&compressed_path), 10_000_000).unwrap();
->>>>>>> origin/rust-migration-7847495834899956704
 
         let extracted_hello = extract_location.join(folder_name).join("hello.txt");
         assert_eq!(fs::read_to_string(extracted_hello).unwrap(), "hello world");
 
         let extracted_inner = extract_location.join(folder_name).join("a").join("inner");
-<<<<<<< HEAD
         assert_eq!(
             fs::read_to_string(extracted_inner).unwrap(),
             "hello world inner"
         );
-=======
-        assert_eq!(fs::read_to_string(extracted_inner).unwrap(), "hello world inner");
->>>>>>> origin/rust-migration-7847495834899956704
     }
 }

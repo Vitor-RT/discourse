@@ -3,10 +3,21 @@ use std::collections::{HashMap, HashSet};
 use super::permissions;
 use super::target::TargetAclItem;
 
+pub trait AclUser {
+    fn group_ids(&self) -> &[u64];
+}
+
 #[derive(Debug, Clone)]
 pub struct User {
     pub target_lookup: HashMap<String, Vec<String>>,
     pub permission_lookup: HashMap<String, HashMap<String, Vec<u64>>>,
+    pub groups: Vec<u64>,
+}
+
+impl AclUser for User {
+    fn group_ids(&self) -> &[u64] {
+        &self.groups
+    }
 }
 
 pub struct TargetKey {
@@ -40,6 +51,7 @@ impl User {
         Self {
             target_lookup,
             permission_lookup,
+            groups: Vec::new(),
         }
     }
 
@@ -127,28 +139,28 @@ mod tests {
                 id: 10,
                 permission: "view".to_string(),
                 target_type: "Category".to_string(),
-                target_id: 1, // category_id
+                target_id: 1,
             },
             TargetAclItem {
                 acl_type: "group".to_string(),
                 id: 10,
                 permission: "edit".to_string(),
                 target_type: "Category".to_string(),
-                target_id: 1, // category_id
+                target_id: 1,
             },
             TargetAclItem {
                 acl_type: "group".to_string(),
                 id: 11,
                 permission: "view".to_string(),
                 target_type: "Topic".to_string(),
-                target_id: 2, // topic_id
+                target_id: 2,
             },
             TargetAclItem {
                 acl_type: "user".to_string(),
                 id: 12,
                 permission: "owner".to_string(),
                 target_type: "Topic".to_string(),
-                target_id: 3, // other_topic_id
+                target_id: 3,
             },
         ])
     }
@@ -190,7 +202,6 @@ mod tests {
         assert!(!user.has_target_permission(&topic(), "edit"));
         assert!(!user.has_target_permission(&absent_topic(), "view"));
 
-        // owner
         assert!(user.has_target_permission(&other_topic(), "view"));
         assert!(user.has_target_permission(&other_topic(), "manage"));
     }
@@ -203,7 +214,6 @@ mod tests {
         assert!(!user.has_any_target_permission(&topic(), &["edit", "manage"]));
         assert!(!user.has_any_target_permission(&absent_topic(), &["view", "edit"]));
 
-        // owner
         assert!(user.has_any_target_permission(&other_topic(), &["edit", "manage"]));
     }
 
@@ -212,12 +222,12 @@ mod tests {
         let user = setup_user();
 
         assert_eq!(user.target_ids_with_permission("Category", "view"), vec![1]);
-        assert_eq!(user.target_ids_with_permission("Topic", "view"), vec![2, 3]); // scopes to Topic, owner gets implicit view
+        assert_eq!(user.target_ids_with_permission("Topic", "view"), vec![2, 3]);
         assert_eq!(
             user.target_ids_with_permission("Category", "manage"),
             vec![] as Vec<u64>
         );
-        assert_eq!(user.target_ids_with_permission("Topic", "edit"), vec![3]); // only owner
+        assert_eq!(user.target_ids_with_permission("Topic", "edit"), vec![3]);
         assert_eq!(user.target_ids_with_permission("Topic", "owner"), vec![3]);
     }
 

@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 use std::fs::File;
-=======
-use std::fs::{self, File};
->>>>>>> origin/rust-migration-7847495834899956704
 use std::io::Write;
 use std::path::Path;
 
@@ -62,12 +58,7 @@ end
         let path = "/tmp/discourse_autospec_formatter.rb";
         if !Path::new(path).exists() {
             let mut file = File::create(path).unwrap();
-<<<<<<< HEAD
-            file.write_all(Self::RUBY_FORMATTER_CODE.as_bytes())
-                .unwrap();
-=======
             file.write_all(Self::RUBY_FORMATTER_CODE.as_bytes()).unwrap();
->>>>>>> origin/rust-migration-7847495834899956704
         }
         path.to_string()
     }

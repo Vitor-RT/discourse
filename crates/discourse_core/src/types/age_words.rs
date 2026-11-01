@@ -1,10 +1,5 @@
 use chrono::{DateTime, Datelike, Utc};
 
-// Note: For full I18n support, we'd need a localization framework.
-// For now, we simulate the logic by returning English strings directly
-// or structuring it such that it could be adapted later.
-// We approximate the logic of AgeWords in Discourse.
-
 pub fn age_words(secs: Option<u64>) -> String {
     match secs {
         None => "&mdash;".to_string(),
@@ -29,9 +24,9 @@ pub fn distance_of_time_in_words(
         0..=1 => {
             if !include_seconds {
                 if distance_in_minutes == 0 {
-                    return "less than a minute".to_string(); // locale.t(:less_than_x_minutes, count: 1)
+                    return "less than a minute".to_string();
                 } else {
-                    return "1 minute".to_string(); // locale.t(:x_minutes, count: 1)
+                    return "1 minute".to_string();
                 }
             }
 
@@ -46,28 +41,10 @@ pub fn distance_of_time_in_words(
         }
         2..=44 => format!("{} minutes", distance_in_minutes),
         45..=89 => "about 1 hour".to_string(),
-<<<<<<< HEAD
-        90..=1439 => format!(
-            "about {} hours",
-            (distance_in_minutes as f64 / 60.0).round() as i64
-        ),
-        1440..=2519 => "1 day".to_string(),
-        // Discourse diverge from Rails here
-        2520..=129_599 => format!(
-            "{} days",
-            (distance_in_minutes as f64 / 1440.0).round() as i64
-        ),
-        129_600..=525_599 => format!(
-            "{} months",
-            (distance_in_minutes as f64 / 43200.0).round() as i64
-        ),
-=======
         90..=1439 => format!("about {} hours", (distance_in_minutes as f64 / 60.0).round() as i64),
         1440..=2519 => "1 day".to_string(),
-        // Discourse diverge from Rails here
         2520..=129_599 => format!("{} days", (distance_in_minutes as f64 / 1440.0).round() as i64),
         129_600..=525_599 => format!("{} months", (distance_in_minutes as f64 / 43200.0).round() as i64),
->>>>>>> origin/rust-migration-7847495834899956704
         _ => {
             let mut fyear = from_time.year();
             if from_time.month() >= 3 {
@@ -118,28 +95,11 @@ mod tests {
         let from = Utc.with_ymd_and_hms(2023, 1, 1, 0, 0, 0).unwrap();
         let to_1min = from + chrono::Duration::seconds(45);
 
-<<<<<<< HEAD
-        assert_eq!(
-            distance_of_time_in_words(&from, &to_1min, false),
-            "1 minute"
-        );
-        assert_eq!(
-            distance_of_time_in_words(&from, &to_1min, true),
-            "less than a minute"
-        );
-
-        let to_2h = from + chrono::Duration::hours(2);
-        assert_eq!(
-            distance_of_time_in_words(&from, &to_2h, false),
-            "about 2 hours"
-        );
-=======
         assert_eq!(distance_of_time_in_words(&from, &to_1min, false), "1 minute");
         assert_eq!(distance_of_time_in_words(&from, &to_1min, true), "less than a minute");
 
         let to_2h = from + chrono::Duration::hours(2);
         assert_eq!(distance_of_time_in_words(&from, &to_2h, false), "about 2 hours");
->>>>>>> origin/rust-migration-7847495834899956704
 
         let to_1day = from + chrono::Duration::hours(25);
         assert_eq!(distance_of_time_in_words(&from, &to_1day, false), "1 day");
@@ -148,28 +108,15 @@ mod tests {
         assert_eq!(distance_of_time_in_words(&from, &to_5days, false), "5 days");
 
         let to_3months = from + chrono::Duration::days(90);
-<<<<<<< HEAD
-        assert_eq!(
-            distance_of_time_in_words(&from, &to_3months, false),
-            "3 months"
-        );
-
-        let to_2years = from + chrono::Duration::days(731);
-        assert_eq!(
-            distance_of_time_in_words(&from, &to_2years, false),
-            "about 2 years"
-        );
-=======
         assert_eq!(distance_of_time_in_words(&from, &to_3months, false), "3 months");
 
         let to_2years = from + chrono::Duration::days(731);
         assert_eq!(distance_of_time_in_words(&from, &to_2years, false), "about 2 years");
->>>>>>> origin/rust-migration-7847495834899956704
     }
 
     #[test]
     fn test_age_words() {
         assert_eq!(age_words(None), "&mdash;");
-        assert!(age_words(Some(60)).contains("minute")); // Exact test depends on now
+        assert!(age_words(Some(60)).contains("minute"));
     }
 }

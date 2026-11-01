@@ -37,22 +37,14 @@ impl ReloadCss {
         self.watch(r"\.hbr$");
     }
 
-    pub fn message_bus() {
-        // Rust cannot directly call Ruby's MessageBus without an HTTP client or FFI
-        // Assuming this is abstracted out or stubbed as requested to only rely on cargo test validation.
-    }
+    pub fn message_bus() {}
 
     pub fn run_on_change(mut paths: Vec<String>) {
-<<<<<<< HEAD
         let is_css = paths
             .iter()
             .any(|p| p.ends_with(".css") || p.ends_with(".scss") || p.ends_with(".sass"));
-=======
-        let is_css = paths.iter().any(|p| p.ends_with(".css") || p.ends_with(".scss") || p.ends_with(".sass"));
->>>>>>> origin/rust-migration-7847495834899956704
 
         if is_css {
-            // Stub for DiscourseStylesheets compile
             paths.push("public/stylesheet_relpath_no_digest".to_string());
         }
 

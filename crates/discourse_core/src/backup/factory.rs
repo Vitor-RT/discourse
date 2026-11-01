@@ -1,12 +1,8 @@
 use crate::backup::logger::Logger;
-<<<<<<< HEAD
 use crate::backup::meta_data_handler::MetaDataHandler;
 use crate::backup::backup_file_handler::BackupFileHandler;
-=======
->>>>>>> origin/rust-migration-7847495834899956704
 use std::cell::RefCell;
 
-// Stubs for future implementation
 pub struct UploadsRestorer<'a> {
     _logger: &'a RefCell<Logger>,
 }
@@ -16,22 +12,6 @@ pub struct DatabaseRestorer<'a> {
     _current_db: String,
 }
 
-<<<<<<< HEAD
-=======
-pub struct MetaDataHandler<'a> {
-    _logger: &'a RefCell<Logger>,
-    _filename: String,
-    _tmp_directory: String,
-}
-
-pub struct BackupFileHandler<'a> {
-    _logger: &'a RefCell<Logger>,
-    _filename: String,
-    _current_db: String,
-    _location: String,
-}
-
->>>>>>> origin/rust-migration-7847495834899956704
 pub struct Factory {
     pub user_id: Option<i32>,
     pub client_id: Option<String>,
@@ -52,7 +32,6 @@ impl Factory {
         self.logger.borrow_mut()
     }
 
-<<<<<<< HEAD
     pub fn meta_data_handler<'a>(
         &'a self,
         filename: String,
@@ -86,11 +65,6 @@ impl Factory {
             location,
         )
     }
-=======
-    // These need to return objects that borrow logger. We use RefCell to allow multiple things
-    // to borrow it if needed, or just let them take a reference to it.
-    // However, given the design, let's keep it simple and return the structs.
->>>>>>> origin/rust-migration-7847495834899956704
 }
 
 #[cfg(test)]

@@ -1,109 +1,74 @@
-use crate::admin_reports::registry::Registry;
+use std::collections::{HashMap, HashSet};
+
+use super::layout_updater::{AdminDashboardReportRecord, AdminDashboardReportStore};
+use super::registry::Registry;
+
+pub const DEFAULT_VISIBLE_CAP: usize = 20;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum MounterError {
-    InvalidParameters(String),
-    InvalidAccess,
     CapReached,
+    InvalidAccess,
 }
 
-#[derive(Debug)]
-pub struct AdminDashboardReportRecord {
-    pub source: String,
-    pub identifier: String,
+impl std::fmt::Display for MounterError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::CapReached => write!(f, "Cap reached"),
+            Self::InvalidAccess => write!(f, "Invalid access"),
+        }
+    }
 }
 
-pub trait AdminDashboardReportStore {
-    fn find_by(&self, source: &str, identifier: &str) -> Option<AdminDashboardReportRecord>;
-    fn count(&self) -> usize;
-<<<<<<< HEAD
-    fn create(
-        &mut self,
-        source: String,
-        identifier: String,
-    ) -> Result<AdminDashboardReportRecord, MounterError>;
-    fn delete_all(&mut self, source: &str, identifier: &str);
-    fn delete_all_records(&mut self);
-    fn create_layout_record(
-        &mut self,
-        source: String,
-        identifier: String,
-        position: usize,
-        rows: usize,
-        cols: usize,
-    );
-=======
-    fn create(&mut self, source: String, identifier: String) -> Result<AdminDashboardReportRecord, MounterError>;
-    fn delete_all(&mut self, source: &str, identifier: &str);
-    fn delete_all_records(&mut self);
-    fn create_layout_record(&mut self, source: String, identifier: String, position: usize, rows: usize, cols: usize);
->>>>>>> origin/rust-migration-7847495834899956704
-}
+impl std::error::Error for MounterError {}
 
-pub struct Mounter<'a> {
-    pub visible_cap: usize,
+pub struct Mounter<'a, S: AdminDashboardReportStore> {
     pub registry: &'a Registry,
-    pub store: &'a mut dyn AdminDashboardReportStore,
+    pub store: &'a mut S,
+    pub visible_cap: usize,
 }
 
-impl<'a> Mounter<'a> {
-<<<<<<< HEAD
-    pub fn mount(
-        &mut self,
-        source: &str,
-        identifier: &str,
-        guardian: &dyn std::any::Any,
-    ) -> Result<AdminDashboardReportRecord, MounterError> {
+impl<'a, S: AdminDashboardReportStore> Mounter<'a, S> {
+    pub fn new(registry: &'a Registry, store: &'a mut S) -> Self {
+        Self {
+            registry,
+            store,
+            visible_cap: DEFAULT_VISIBLE_CAP,
+        }
+    }
+
+    pub fn mount<T: 'static>(&mut self, source_name: &str, identifier: &str, user: &T) -> Result<(), MounterError> {
         let provider = self
             .registry
-            .provider_for(source)
-            .ok_or_else(|| MounterError::InvalidParameters("source".to_string()))?;
-=======
-    pub fn mount(&mut self, source: &str, identifier: &str, guardian: &dyn std::any::Any) -> Result<AdminDashboardReportRecord, MounterError> {
-        let provider = self.registry.provider_for(source).ok_or_else(|| MounterError::InvalidParameters("source".to_string()))?;
->>>>>>> origin/rust-migration-7847495834899956704
+            .provider_for(source_name)
+            .ok_or(MounterError::InvalidAccess)?;
 
-        let accessible = provider.accessible_ids(&[identifier.to_string()], guardian);
+        let accessible = provider.accessible_report_identifiers(&[identifier.to_string()], user);
         if !accessible.contains(identifier) {
             return Err(MounterError::InvalidAccess);
-        }
-
-        if let Some(existing) = self.store.find_by(source, identifier) {
-            return Ok(existing);
         }
 
         if self.store.count() >= self.visible_cap {
             return Err(MounterError::CapReached);
         }
 
-<<<<<<< HEAD
-        self.store
-            .create(source.to_string(), identifier.to_string())
-=======
-        self.store.create(source.to_string(), identifier.to_string())
->>>>>>> origin/rust-migration-7847495834899956704
+        if self.store.find_by(source_name, identifier).is_none() {
+            self.store.create(source_name.to_string(), identifier.to_string());
+        }
+
+        Ok(())
     }
 
-    pub fn unmount(&mut self, source: &str, identifier: &str) {
-        self.store.delete_all(source, identifier);
+    pub fn unmount(&mut self, source_name: &str, identifier: &str) {
+        self.store.delete_all(source_name, &[identifier.to_string()]);
     }
 }
 
 #[cfg(test)]
 mod tests {
-<<<<<<< HEAD
     use super::*;
-    use crate::admin_reports::resolved_report::ResolvedReport;
-    use crate::admin_reports::source_provider::SourceProvider;
-    use std::collections::HashMap;
-    use std::collections::HashSet;
-=======
-    use std::collections::HashSet;
-    use super::*;
-    use crate::admin_reports::source_provider::SourceProvider;
-    use crate::admin_reports::resolved_report::ResolvedReport;
-    use std::collections::HashMap;
->>>>>>> origin/rust-migration-7847495834899956704
+    use super::super::source_provider::SourceProvider;
+    use serde_json::Value;
 
     struct DummyProvider {
         source: String,
@@ -111,50 +76,29 @@ mod tests {
     }
 
     impl SourceProvider for DummyProvider {
-<<<<<<< HEAD
-        fn source_name(&self) -> String {
+        fn name(&self) -> String {
             self.source.clone()
         }
-        fn label(&self) -> Option<String> {
-            None
-        }
-        fn resolve_many(
+
+        fn accessible_report_identifiers(
             &self,
-            _ids: &[String],
-            _guardian: &dyn std::any::Any,
-        ) -> HashMap<String, ResolvedReport> {
-            HashMap::new()
+            identifiers: &[String],
+            _user: &dyn std::any::Any,
+        ) -> HashSet<String> {
+            identifiers
+                .iter()
+                .filter(|id| self.accessible.contains(*id))
+                .cloned()
+                .collect()
         }
-        fn fetch_many(
-            &self,
-            _ids: &[String],
-            _guardian: &dyn std::any::Any,
-            _filters: &HashMap<String, String>,
-        ) -> HashMap<String, serde_json::Value> {
-            HashMap::new()
-        }
-        fn list_all(
-            &self,
-            _search: Option<&str>,
-            _after: Option<&HashMap<String, String>>,
-            _limit: Option<usize>,
-        ) -> Vec<ResolvedReport> {
-            vec![]
-        }
-        fn accessible_ids(
+
+        fn bulk_fetch(
             &self,
             _identifiers: &[String],
-            _guardian: &dyn std::any::Any,
-        ) -> HashSet<String> {
-=======
-        fn source_name(&self) -> String { self.source.clone() }
-        fn label(&self) -> Option<String> { None }
-        fn resolve_many(&self, _ids: &[String], _guardian: &dyn std::any::Any) -> HashMap<String, ResolvedReport> { HashMap::new() }
-        fn fetch_many(&self, _ids: &[String], _guardian: &dyn std::any::Any, _filters: &HashMap<String, String>) -> HashMap<String, serde_json::Value> { HashMap::new() }
-        fn list_all(&self, _search: Option<&str>, _after: Option<&HashMap<String, String>>, _limit: Option<usize>) -> Vec<ResolvedReport> { vec![] }
-        fn accessible_ids(&self, _identifiers: &[String], _guardian: &dyn std::any::Any) -> HashSet<String> {
->>>>>>> origin/rust-migration-7847495834899956704
-            self.accessible.clone()
+            _filters: &HashMap<String, String>,
+            _user: &dyn std::any::Any,
+        ) -> HashMap<String, Value> {
+            HashMap::new()
         }
     }
 
@@ -163,61 +107,29 @@ mod tests {
     }
 
     impl AdminDashboardReportStore for MockStore {
-        fn find_by(&self, source: &str, identifier: &str) -> Option<AdminDashboardReportRecord> {
-<<<<<<< HEAD
+        fn find_by(&self, source: &str, identifier: &str) -> Option<&AdminDashboardReportRecord> {
             self.records
                 .iter()
                 .find(|r| r.source == source && r.identifier == identifier)
-                .map(|r| AdminDashboardReportRecord {
-                    source: r.source.clone(),
-                    identifier: r.identifier.clone(),
-                })
-=======
-            self.records.iter().find(|r| r.source == source && r.identifier == identifier).map(|r| AdminDashboardReportRecord {
-                source: r.source.clone(),
-                identifier: r.identifier.clone(),
-            })
->>>>>>> origin/rust-migration-7847495834899956704
+        }
+
+        fn create(&mut self, source: String, identifier: String) -> AdminDashboardReportRecord {
+            let rec = AdminDashboardReportRecord { source, identifier };
+            self.records.push(AdminDashboardReportRecord {
+                source: rec.source.clone(),
+                identifier: rec.identifier.clone(),
+            });
+            rec
         }
 
         fn count(&self) -> usize {
             self.records.len()
         }
 
-<<<<<<< HEAD
-        fn create(
-            &mut self,
-            source: String,
-            identifier: String,
-        ) -> Result<AdminDashboardReportRecord, MounterError> {
-            let record = AdminDashboardReportRecord {
-                source: source.clone(),
-                identifier: identifier.clone(),
-            };
-            self.records
-                .push(AdminDashboardReportRecord { source, identifier });
-=======
-        fn create(&mut self, source: String, identifier: String) -> Result<AdminDashboardReportRecord, MounterError> {
-            let record = AdminDashboardReportRecord { source: source.clone(), identifier: identifier.clone() };
-            self.records.push(AdminDashboardReportRecord { source, identifier });
->>>>>>> origin/rust-migration-7847495834899956704
-            Ok(record)
+        fn delete_all(&mut self, source: &str, identifiers: &[String]) {
+            self.records.retain(|r| !(r.source == source && identifiers.contains(&r.identifier)));
         }
 
-        fn delete_all(&mut self, source: &str, identifier: &str) {
-<<<<<<< HEAD
-            self.records
-                .retain(|r| !(r.source == source && r.identifier == identifier));
-=======
-            self.records.retain(|r| !(r.source == source && r.identifier == identifier));
->>>>>>> origin/rust-migration-7847495834899956704
-        }
-
-        fn delete_all_records(&mut self) {
-            self.records.clear();
-        }
-
-<<<<<<< HEAD
         fn create_layout_record(
             &mut self,
             source: String,
@@ -226,9 +138,6 @@ mod tests {
             _rows: usize,
             _cols: usize,
         ) {
-=======
-        fn create_layout_record(&mut self, source: String, identifier: String, _position: usize, _rows: usize, _cols: usize) {
->>>>>>> origin/rust-migration-7847495834899956704
             let _ = self.create(source, identifier);
         }
     }
@@ -259,21 +168,15 @@ mod tests {
             accessible: HashSet::from(["id1".to_string()]),
         })]);
 
-<<<<<<< HEAD
         let mut store = MockStore {
             records: vec![AdminDashboardReportRecord {
                 source: "src2".to_string(),
                 identifier: "id2".to_string(),
             }],
         };
-=======
-        let mut store = MockStore { records: vec![
-            AdminDashboardReportRecord { source: "src2".to_string(), identifier: "id2".to_string() }
-        ] };
->>>>>>> origin/rust-migration-7847495834899956704
 
         let mut mounter = Mounter {
-            visible_cap: 1, // Cap is 1, and we already have 1
+            visible_cap: 1,
             registry: &registry,
             store: &mut store,
         };
@@ -290,15 +193,11 @@ mod tests {
         })]);
 
         let mut store = MockStore { records: vec![] };
-<<<<<<< HEAD
         let mut mounter = Mounter {
             visible_cap: 3,
             registry: &registry,
             store: &mut store,
         };
-=======
-        let mut mounter = Mounter { visible_cap: 3, registry: &registry, store: &mut store };
->>>>>>> origin/rust-migration-7847495834899956704
 
         let result = mounter.mount("src1", "id1", &());
         assert_eq!(result.unwrap_err(), MounterError::InvalidAccess);
@@ -307,7 +206,6 @@ mod tests {
     #[test]
     fn test_unmount() {
         let registry = Registry::new(vec![]);
-<<<<<<< HEAD
         let mut store = MockStore {
             records: vec![AdminDashboardReportRecord {
                 source: "src1".to_string(),
@@ -320,13 +218,6 @@ mod tests {
             registry: &registry,
             store: &mut store,
         };
-=======
-        let mut store = MockStore { records: vec![
-            AdminDashboardReportRecord { source: "src1".to_string(), identifier: "id1".to_string() }
-        ] };
-
-        let mut mounter = Mounter { visible_cap: 3, registry: &registry, store: &mut store };
->>>>>>> origin/rust-migration-7847495834899956704
         mounter.unmount("src1", "id1");
         assert_eq!(mounter.store.count(), 0);
     }

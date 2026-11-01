@@ -53,14 +53,10 @@ pub trait Strategy: Send + Sync {
     }
 
     fn compress(&self, path: &Path, target_name: &str) -> Result<String, CompressionError>;
-<<<<<<< HEAD
     fn decompress(
         &self,
         dest_path: &Path,
         compressed_file_path: &Path,
         max_size: u64,
     ) -> Result<String, CompressionError>;
-=======
-    fn decompress(&self, dest_path: &Path, compressed_file_path: &Path, max_size: u64) -> Result<String, CompressionError>;
->>>>>>> origin/rust-migration-7847495834899956704
 }

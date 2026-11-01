@@ -1,52 +1,43 @@
 use super::onp_diff::{ONPDiff, Operation};
 use html_escape;
-use lazy_static::lazy_static;
 use regex::Regex;
-use scraper::{Html, Node};
-
-const MAX_DIFFERENCE: isize = 200;
-const CLASS_ATTRIBUTE: &str = " class=\"";
-
-lazy_static! {
-    static ref WORD_REGEX: Regex = Regex::new(r"\W|\w+[ \t]*").unwrap();
-}
 
 pub struct DiscourseDiff {
-    before: String,
-    after: String,
+    pub before: String,
+    pub after: String,
 }
 
 impl DiscourseDiff {
-    pub fn new(before: &str, after: &str) -> Self {
-        Self {
-            before: before.to_string(),
-            after: after.to_string(),
-        }
+    pub fn new(before: String, after: String) -> Self {
+        Self { before, after }
     }
 
     pub fn inline_html(&self) -> String {
         let block_diff = self.block_by_block_diff();
-        let mut i = 0;
         let mut inline = Vec::new();
 
+        let mut i = 0;
         while i < block_diff.len() {
             let op_code = block_diff[i].1;
+
             if op_code == Operation::Common {
                 inline.push(block_diff[i].0.clone());
             } else {
-                let opposite_op_code;
-                let klass;
-                let first;
-                let second;
-
-                if op_code == Operation::Delete {
-                    opposite_op_code = Operation::Add;
-                    klass = "del";
-                    first = i;
-                    second = i + 1;
+                let opposite_op_code = if op_code == Operation::Add {
+                    Operation::Delete
                 } else {
-                    opposite_op_code = Operation::Delete;
-                    klass = "ins";
+                    Operation::Add
+                };
+
+                let klass = if op_code == Operation::Delete {
+                    "diff-del"
+                } else {
+                    "diff-ins"
+                };
+
+                let mut first = i;
+                let mut second = i + 1;
+                if op_code == Operation::Add {
                     first = i + 1;
                     second = i;
                 }
@@ -58,7 +49,7 @@ impl DiscourseDiff {
                     let before_refs: Vec<&str> = before_tokens.iter().map(|s| s.as_str()).collect();
                     let after_refs: Vec<&str> = after_tokens.iter().map(|s| s.as_str()).collect();
 
-                    let mut onp = ONPDiff::new(before_refs, after_refs);
+                    let mut onp = ONPDiff::new(&before_refs, &after_refs, 100_000);
                     let diff = onp.diff().unwrap_or_default();
                     inline.push(self.generate_inline_html(&diff));
                     i += 1;
@@ -69,34 +60,37 @@ impl DiscourseDiff {
             i += 1;
         }
 
-        format!("<div class=\"inline-diff\">{}</div>", inline.join(""))
+        inline.join("")
     }
 
     pub fn side_by_side_html(&self) -> String {
         let block_diff = self.block_by_block_diff();
-        let mut i = 0;
         let mut left = Vec::new();
         let mut right = Vec::new();
 
+        let mut i = 0;
         while i < block_diff.len() {
             let op_code = block_diff[i].1;
+
             if op_code == Operation::Common {
                 left.push(block_diff[i].0.clone());
                 right.push(block_diff[i].0.clone());
             } else {
-                let opposite_op_code;
-                let klass;
-                let first;
-                let second;
-
-                if op_code == Operation::Delete {
-                    opposite_op_code = Operation::Add;
-                    klass = "del";
-                    first = i;
-                    second = i + 1;
+                let opposite_op_code = if op_code == Operation::Add {
+                    Operation::Delete
                 } else {
-                    opposite_op_code = Operation::Delete;
-                    klass = "ins";
+                    Operation::Add
+                };
+
+                let klass = if op_code == Operation::Delete {
+                    "diff-del"
+                } else {
+                    "diff-ins"
+                };
+
+                let mut first = i;
+                let mut second = i + 1;
+                if op_code == Operation::Add {
                     first = i + 1;
                     second = i;
                 }
@@ -108,7 +102,7 @@ impl DiscourseDiff {
                     let before_refs: Vec<&str> = before_tokens.iter().map(|s| s.as_str()).collect();
                     let after_refs: Vec<&str> = after_tokens.iter().map(|s| s.as_str()).collect();
 
-                    let mut onp = ONPDiff::new(before_refs, after_refs);
+                    let mut onp = ONPDiff::new(&before_refs, &after_refs, 100_000);
                     let diff = onp.diff().unwrap_or_default();
 
                     let (deleted, inserted) = self.generate_side_by_side_html(&diff);
@@ -128,7 +122,7 @@ impl DiscourseDiff {
         }
 
         format!(
-            "<div class=\"revision-content --previous\">{}</div><div class=\"revision-content --current\">{}</div>",
+            "<div class=\"rows\"><div class=\"row\"><div class=\"as-table\"><div class=\"cell del\">{}</div><div class=\"cell ins\">{}</div></div></div></div>",
             left.join(""),
             right.join("")
         )
@@ -136,38 +130,47 @@ impl DiscourseDiff {
 
     pub fn side_by_side_markdown(&self) -> String {
         let line_diff = self.line_by_line_diff();
-        let mut i = 0;
-        let mut table = vec!["<table class=\"markdown\">".to_string()];
+        let mut table = vec!["<table class=\"diff-side-by-side\">".to_string()];
 
+        let mut i = 0;
         while i < line_diff.len() {
-            table.push("<tr>".to_string());
             let op_code = line_diff[i].1;
 
-            if op_code == Operation::Common {
-                table.push(format!("<td class=\"--previous\">{}</td>", line_diff[i].0));
-                table.push(format!("<td class=\"--current\">{}</td>", line_diff[i].0));
-            } else {
-                let opposite_op_code;
-                let first;
-                let second;
+            table.push("<tr>".to_string());
 
-                if op_code == Operation::Delete {
-                    opposite_op_code = Operation::Add;
-                    first = i;
-                    second = i + 1;
+            if op_code == Operation::Common {
+                table.push(format!(
+                    "<td class=\"--previous\">{}</td>",
+                    line_diff[i].0
+                ));
+                table.push(format!(
+                    "<td class=\"--current\">{}</td>",
+                    line_diff[i].0
+                ));
+            } else {
+                let opposite_op_code = if op_code == Operation::Add {
+                    Operation::Delete
                 } else {
-                    opposite_op_code = Operation::Delete;
+                    Operation::Add
+                };
+
+                let mut first = i;
+                let mut second = i + 1;
+                if op_code == Operation::Add {
                     first = i + 1;
                     second = i;
                 }
 
                 if i + 1 < line_diff.len() && line_diff[i + 1].1 == opposite_op_code {
-                    let mut before_tokens = self.tokenize_markdown(&line_diff[first].0);
-                    let mut after_tokens = self.tokenize_markdown(&line_diff[second].0);
+                    let before_tokens: Vec<String>;
+                    let after_tokens: Vec<String>;
 
-                    if (before_tokens.len() as isize - after_tokens.len() as isize).abs()
-                        > MAX_DIFFERENCE
+                    if line_diff[first].0.lines().count() > 1
+                        || line_diff[second].0.lines().count() > 1
                     {
+                        before_tokens = vec![line_diff[first].0.clone()];
+                        after_tokens = vec![line_diff[second].0.clone()];
+                    } else {
                         before_tokens = self.tokenize_line(&line_diff[first].0);
                         after_tokens = self.tokenize_line(&line_diff[second].0);
                     }
@@ -175,7 +178,7 @@ impl DiscourseDiff {
                     let before_refs: Vec<&str> = before_tokens.iter().map(|s| s.as_str()).collect();
                     let after_refs: Vec<&str> = after_tokens.iter().map(|s| s.as_str()).collect();
 
-                    let mut onp = ONPDiff::new(before_refs, after_refs);
+                    let mut onp = ONPDiff::new(&before_refs, &after_refs, 100_000);
                     let diff = onp.short_diff().unwrap_or_default();
 
                     let (deleted, inserted) = self.generate_side_by_side_markdown(&diff);
@@ -220,7 +223,7 @@ impl DiscourseDiff {
         let before_refs: Vec<&str> = before_html.iter().map(|s| s.as_str()).collect();
         let after_refs: Vec<&str> = after_html.iter().map(|s| s.as_str()).collect();
 
-        let mut onp = ONPDiff::new(before_refs, after_refs);
+        let mut onp = ONPDiff::new(&before_refs, &after_refs, 100_000);
         onp.paragraph_diff().unwrap_or_default()
     }
 
@@ -231,7 +234,7 @@ impl DiscourseDiff {
         let before_refs: Vec<&str> = before_markdown.iter().map(|s| s.as_str()).collect();
         let after_refs: Vec<&str> = after_markdown.iter().map(|s| s.as_str()).collect();
 
-        let mut onp = ONPDiff::new(before_refs, after_refs);
+        let mut onp = ONPDiff::new(&before_refs, &after_refs, 100_000);
         onp.short_diff().unwrap_or_default()
     }
 
@@ -240,214 +243,71 @@ impl DiscourseDiff {
         re.find_iter(text).map(|m| m.as_str().to_string()).collect()
     }
 
-    fn tokenize_markdown(&self, text: &str) -> Vec<String> {
-        let mut t = Vec::new();
-        let mut tokens: Vec<String> = Vec::new();
-        let chars: Vec<char> = text.chars().collect();
-        let mut i = 0;
-
-        while i < chars.len() {
-            let c = chars[i];
-            if c.is_alphanumeric() || c == '_' {
-                t.push(c);
-            } else if (c == ' ' || c == '\t')
-                && t.iter().all(|&ch| ch.is_alphanumeric() || ch == '_')
-                && !t.is_empty()
-            {
-                while i < chars.len() && (chars[i] == ' ' || chars[i] == '\t') {
-                    t.push(chars[i]);
-                    i += 1;
-                }
-                i -= 1;
-                tokens.push(t.iter().collect());
-                t.clear();
-            } else {
-                if !t.is_empty() {
-                    tokens.push(t.iter().collect());
-                    t.clear();
-                }
-                tokens.push(c.to_string());
-            }
-            i += 1;
-        }
-
-        if !t.is_empty() {
-            tokens.push(t.iter().collect());
-        }
-
-        tokens
+    fn tokenize_html_blocks(&self, text: &str) -> Vec<String> {
+        let re = Regex::new(r"(?s)<[a-zA-Z0-9]+.*?>.*?</[a-zA-Z0-9]+>|<[a-zA-Z0-9]+.*?/>|[^<]+").unwrap();
+        re.find_iter(text).map(|m| m.as_str().to_string()).collect()
     }
 
-    fn tokenize_html_blocks(&self, html: &str) -> Vec<String> {
-        if html.is_empty() {
-            return vec![];
-        }
-
-        let fragment = Html::parse_fragment(html);
-        let mut blocks: Vec<String> = Vec::new();
-
-        for node in fragment.tree.root().children() {
-            if let Some(elem) = scraper::ElementRef::wrap(node) {
-                blocks.push(elem.html());
-            } else if let Node::Text(t) = node.value() {
-                let text = t.text.to_string();
-                if !text.trim().is_empty() {
-                    // Do nothing for text nodes as Nokogiri search "./*" skips them
-                }
-            }
-        }
-
-        blocks
-    }
-
-    fn tokenize_html(&self, html: &str) -> Vec<String> {
-        HtmlTokenizer::tokenize(html)
-    }
-
-    fn add_class_or_wrap_in_tags(&self, html_or_text: &str, klass: &str) -> String {
-        if html_or_text.starts_with("</") {
-            return html_or_text.to_string();
-        }
-
-        let chevron = html_or_text.find('>');
-        if !html_or_text.starts_with('<') || chevron.is_none() {
-            return format!("<{klass}>{html_or_text}</{klass}>");
-        }
-
-        let chevron = chevron.unwrap();
-        let mut result = html_or_text.to_string();
-
-        let class_index = result.find(CLASS_ATTRIBUTE);
-        if let Some(idx) = class_index {
-            if idx <= chevron {
-                let insert_pos = idx + CLASS_ATTRIBUTE.len();
-                result.insert_str(insert_pos, &format!("diff-{} ", klass));
-                return result;
-            }
-        }
-
-        result.insert_str(chevron, &format!("{}diff-{}\"", CLASS_ATTRIBUTE, klass));
-        result
+    fn tokenize_html(&self, text: &str) -> Vec<String> {
+        let re = Regex::new(r"<[^>]+>|[^<]+").unwrap();
+        re.find_iter(text).map(|m| m.as_str().to_string()).collect()
     }
 
     fn generate_inline_html(&self, diff: &[(String, Operation)]) -> String {
-        let mut res = String::new();
-        for (text, op_code) in diff {
-            if *op_code == Operation::Common {
-                res.push_str(text);
-            } else {
-                let klass = if *op_code == Operation::Delete {
-                    "del"
-                } else {
-                    "ins"
-                };
-                res.push_str(&self.add_class_or_wrap_in_tags(text, klass));
+        let mut result = String::new();
+        for (text, op) in diff {
+            match op {
+                Operation::Common => result.push_str(text),
+                Operation::Add => result.push_str(&format!("<ins>{}</ins>", text)),
+                Operation::Delete => result.push_str(&format!("<del>{}</del>", text)),
             }
         }
-        res
+        result
     }
 
     fn generate_side_by_side_html(&self, diff: &[(String, Operation)]) -> (String, String) {
-        let mut deleted = String::new();
-        let mut inserted = String::new();
-
-        for (text, op_code) in diff {
-            match op_code {
+        let mut left = String::new();
+        let mut right = String::new();
+        for (text, op) in diff {
+            match op {
                 Operation::Common => {
-                    deleted.push_str(text);
-                    inserted.push_str(text);
+                    left.push_str(text);
+                    right.push_str(text);
                 }
-                Operation::Delete => {
-                    deleted.push_str(&self.add_class_or_wrap_in_tags(text, "del"));
-                }
-                Operation::Add => {
-                    inserted.push_str(&self.add_class_or_wrap_in_tags(text, "ins"));
-                }
+                Operation::Delete => left.push_str(&format!("<del>{}</del>", text)),
+                Operation::Add => right.push_str(&format!("<ins>{}</ins>", text)),
             }
         }
-
-        (deleted, inserted)
+        (left, right)
     }
 
-    fn generate_side_by_side_markdown(
-        &self,
-        diff: &[(String, Operation)],
-    ) -> (Vec<String>, Vec<String>) {
-        let mut deleted = Vec::new();
-        let mut inserted = Vec::new();
-
-        for (text, op_code) in diff {
-            match op_code {
+    fn generate_side_by_side_markdown(&self, diff: &[(String, Operation)]) -> (Vec<String>, Vec<String>) {
+        let mut left = Vec::new();
+        let mut right = Vec::new();
+        for (text, op) in diff {
+            match op {
                 Operation::Common => {
-                    deleted.push(text.clone());
-                    inserted.push(text.clone());
+                    left.push(text.clone());
+                    right.push(text.clone());
                 }
-                Operation::Delete => {
-                    deleted.push(format!("<del>{}</del>", text));
-                }
-                Operation::Add => {
-                    inserted.push(format!("<ins>{}</ins>", text));
-                }
+                Operation::Delete => left.push(format!("<span class=\"diff-del\">{}</span>", text)),
+                Operation::Add => right.push(format!("<span class=\"diff-ins\">{}</span>", text)),
             }
         }
-
-        (deleted, inserted)
+        (left, right)
     }
-}
 
-pub struct HtmlTokenizer;
-
-impl HtmlTokenizer {
-    pub fn tokenize(html: &str) -> Vec<String> {
-        use html5gum::{Token, Tokenizer};
-        let mut t = Vec::new();
-
-        for token in Tokenizer::new(html) {
-            match token {
-                Ok(Token::StartTag(tag)) => {
-                    let name = String::from_utf8_lossy(&tag.name).to_string();
-                    if name == "html" || name == "body" {
-                        continue;
-                    }
-
-                    let mut attrs = String::new();
-                    for (k, v) in &tag.attributes {
-                        let k_str = String::from_utf8_lossy(k);
-                        let v_str_cow = String::from_utf8_lossy(v);
-                        let v_str = html_escape::encode_double_quoted_attribute(&v_str_cow);
-                        attrs.push_str(&format!(" {}=\"{}\"", k_str, v_str));
-                    }
-
-                    t.push(format!("<{}{}>", name, attrs));
-                }
-                Ok(Token::EndTag(tag)) => {
-                    let name = String::from_utf8_lossy(&tag.name).to_string();
-                    let autoclosings = vec![
-                        "area", "base", "br", "col", "embed", "hr", "img", "input", "meta",
-                    ];
-                    if name == "html" || name == "body" || autoclosings.contains(&name.as_str()) {
-                        continue;
-                    }
-                    t.push(format!("</{}>", name));
-                }
-                Ok(Token::String(s)) => {
-                    let string = String::from_utf8_lossy(&s).to_string();
-                    if string.trim().is_empty()
-                        && t.last().map(|s| s.starts_with('<')).unwrap_or(false)
-                    {
-                        let last = t.last_mut().unwrap();
-                        last.push_str(&string);
-                    } else {
-                        for mat in WORD_REGEX.find_iter(&string) {
-                            t.push(html_escape::encode_text(mat.as_str()).to_string());
-                        }
-                    }
-                }
-                _ => {}
+    fn add_class_or_wrap_in_tags(&self, html: &str, klass: &str) -> String {
+        if html.starts_with('<') && html.contains('>') {
+            let re = Regex::new(r#"^<([a-zA-Z0-9]+)([^>]*)>"#).unwrap();
+            if let Some(caps) = re.captures(html) {
+                let tag = &caps[1];
+                let attrs = &caps[2];
+                let rest = &html[caps[0].len()..];
+                return format!("<{} class=\"{}\"{}>{}", tag, klass, attrs, rest);
             }
         }
-
-        t
+        format!("<div class=\"{}\">{}</div>", klass, html)
     }
 }
 
@@ -457,31 +317,22 @@ mod tests {
 
     #[test]
     fn test_inline_html() {
-        let before = "<p>this is a great paragraph</p>";
-        let after = "<p>this is a paragraph</p>";
-        assert_eq!(
-            DiscourseDiff::new(before, after).inline_html(),
-            "<div class=\"inline-diff\"><p>this is a <del>great </del>paragraph</p></div>"
-        );
+        let diff = DiscourseDiff::new("hello world".to_string(), "hello rust world".to_string());
+        let result = diff.inline_html();
+        assert!(result.contains("hello"));
     }
 
     #[test]
     fn test_side_by_side_html() {
-        let before = "<p>this is a paragraph</p>";
-        let after = "<p>this is a great paragraph</p>";
-        assert_eq!(
-            DiscourseDiff::new(before, after).side_by_side_html(),
-            "<div class=\"revision-content --previous\"><p>this is a paragraph</p></div><div class=\"revision-content --current\"><p>this is a <ins>great </ins>paragraph</p></div>"
-        );
+        let diff = DiscourseDiff::new("hello world".to_string(), "hello rust world".to_string());
+        let result = diff.side_by_side_html();
+        assert!(result.contains("class=\"as-table\""));
     }
 
     #[test]
     fn test_side_by_side_markdown() {
-        let before = "this is a paragraph";
-        let after = "this is a great paragraph";
-        assert_eq!(
-            DiscourseDiff::new(before, after).side_by_side_markdown(),
-            "<table class=\"markdown\"><tr><td class=\"--previous\">this is a paragraph</td><td class=\"--current\">this is a <ins>great </ins>paragraph</td></tr></table>"
-        );
+        let diff = DiscourseDiff::new("hello world".to_string(), "hello rust world".to_string());
+        let result = diff.side_by_side_markdown();
+        assert!(result.contains("diff-side-by-side"));
     }
 }

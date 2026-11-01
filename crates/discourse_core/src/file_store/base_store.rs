@@ -1,14 +1,12 @@
-use rutie::{AnyObject, Class, Object, RString, VM, Integer};
-
 pub const TEMPORARY_UPLOAD_PREFIX: &str = "temp/";
 pub const CACHE_MAXIMUM_SIZE: usize = 500;
 pub const CACHE_EVICT_COUNT: usize = 100;
 
 pub fn get_depth_for(id: i64) -> usize {
     if id > 0 {
-        let depth = (id as f64 / 1_000.0).log(16.0).ceil() as usize;
+        let depth = (id as f64 / 1_000.0).log(16.0).ceil() as isize;
         if depth > 0 {
-            return depth;
+            return depth as usize;
         }
     }
     0
@@ -26,32 +24,16 @@ pub fn get_path_for(file_type: &str, id: i64, sha: &str, extension: &str) -> Str
     format!("{}/{}X/{}{}{}", file_type, depth + 1, tree, sha, extension)
 }
 
-rutie::class!(RubyBaseStore);
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-rutie::methods!(
-    RubyBaseStore,
-    _itself,
-
-    fn ruby_get_depth_for(id: Integer) -> Integer {
-        let result = get_depth_for(id.unwrap().to_i64());
-        Integer::new(result as i64)
+    #[test]
+    fn test_base_store_depth_and_path() {
+        assert_eq!(get_depth_for(0), 0);
+        assert_eq!(get_depth_for(1000), 0);
+        assert_eq!(get_depth_for(1001), 1);
+        let path = get_path_for("uploads", 100, "abcdef1234567890", ".png");
+        assert!(path.contains("uploads/"));
     }
-
-    fn ruby_get_path_for(file_type: RString, id: Integer, sha: RString, extension: RString) -> RString {
-        let result = get_path_for(
-            &file_type.unwrap().to_string(),
-            id.unwrap().to_i64(),
-            &sha.unwrap().to_string(),
-            &extension.unwrap().to_string()
-        );
-        RString::new_utf8(&result)
-    }
-);
-
-#[no_mangle]
-pub extern "C" fn Init_base_store() {
-    Class::new("FileStore::BaseStore", None).define(|klass| {
-        klass.def_self("get_depth_for", ruby_get_depth_for);
-        klass.def_self("get_path_for", ruby_get_path_for);
-    });
 }

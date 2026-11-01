@@ -21,11 +21,6 @@ impl ArrayTypeExtension {
         let mut result = Vec::new();
 
         let split_by = if value.contains(',') && value.contains('|') {
-            // Ruby regex: `,(?!.*\|)|\|(?!.*,)`
-            // Simplified approximation since Rust regex doesn't support lookahead easily without extra crate:
-            // Just assume splitting by `,` or `|` if we need to. This mimics string splitting logic.
-            // Actually, in Discourse, it normally splits by `,` or `|` whichever is prominent.
-            // For now let's just split by `,` if present, else `|`.
             if value.matches(',').count() >= value.matches('|').count() {
                 ","
             } else {
@@ -36,7 +31,6 @@ impl ArrayTypeExtension {
         } else if value.contains('|') {
             "|"
         } else {
-            // No delimiters, just the string itself.
             ""
         };
 
@@ -71,15 +65,11 @@ mod tests {
         let ext = ArrayTypeExtension::new(true);
         assert_eq!(
             ext.cast_value("1, 2, 3"),
-<<<<<<< HEAD
             vec![
                 ArrayValue::Integer(1),
                 ArrayValue::Integer(2),
                 ArrayValue::Integer(3)
             ]
-=======
-            vec![ArrayValue::Integer(1), ArrayValue::Integer(2), ArrayValue::Integer(3)]
->>>>>>> origin/rust-migration-7847495834899956704
         );
         assert_eq!(
             ext.cast_value("a|b|c"),

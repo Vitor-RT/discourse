@@ -2,72 +2,33 @@ use std::process::Command;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum ChromeError {
-    ChromeVersionError(String),
     ChromeNotInstalled(String),
+    ChromeVersionError(String),
     ChromeVersionTooLow(String),
 }
 
 pub fn run() -> Result<String, ChromeError> {
     let mut binary = None;
 
-    if cfg!(target_os = "macos") {
-        let chrome_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-        if std::path::Path::new(chrome_path).exists() {
-            binary = Some(chrome_path.to_string());
-        }
-    } else {
-        if Command::new("sh")
-            .arg("-c")
-            .arg("command -v google-chrome-stable >/dev/null")
-            .status()
-            .map(|s| s.success())
-            .unwrap_or(false)
-        {
-            binary = Some("google-chrome-stable".to_string());
-        }
-    }
-
-<<<<<<< HEAD
-    if binary.is_none()
-        && Command::new("sh")
-=======
-    if binary.is_none() {
-        if Command::new("sh")
->>>>>>> origin/rust-migration-7847495834899956704
-            .arg("-c")
-            .arg("command -v google-chrome >/dev/null")
-            .status()
-            .map(|s| s.success())
-            .unwrap_or(false)
-<<<<<<< HEAD
+    if Command::new("sh")
+        .arg("-c")
+        .arg("command -v google-chrome >/dev/null")
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false)
     {
         binary = Some("google-chrome".to_string());
     }
 
     if binary.is_none()
         && Command::new("sh")
-=======
-        {
-            binary = Some("google-chrome".to_string());
-        }
-    }
-
-    if binary.is_none() {
-        if Command::new("sh")
->>>>>>> origin/rust-migration-7847495834899956704
             .arg("-c")
             .arg("command -v chromium >/dev/null")
             .status()
             .map(|s| s.success())
             .unwrap_or(false)
-<<<<<<< HEAD
     {
         binary = Some("chromium".to_string());
-=======
-        {
-            binary = Some("chromium".to_string());
-        }
->>>>>>> origin/rust-migration-7847495834899956704
     }
 
     let binary = binary.ok_or_else(|| {
@@ -79,13 +40,9 @@ pub fn run() -> Result<String, ChromeError> {
     let output = Command::new(&binary)
         .arg("--version")
         .output()
-<<<<<<< HEAD
         .map_err(|_| {
             ChromeError::ChromeVersionError(format!("Can't get the {} version", binary))
         })?;
-=======
-        .map_err(|_| ChromeError::ChromeVersionError(format!("Can't get the {} version", binary)))?;
->>>>>>> origin/rust-migration-7847495834899956704
     let version = String::from_utf8_lossy(&output.stdout);
 
     let re = regex::Regex::new(r"[\d\.]+").unwrap();

@@ -1,7 +1,7 @@
-use super::strategy::{CompressionError, Strategy};
 use std::fs::File;
 use std::path::Path;
 use tar::{Archive, Builder};
+use super::strategy::{Strategy, CompressionError};
 
 pub struct Tar;
 
@@ -14,10 +14,6 @@ impl Strategy for Tar {
         let source_path = path.join(target_name);
 
         let tar_filename = format!("{}.tar", target_name);
-<<<<<<< HEAD
-=======
-        // Replace invalid chars as per FileHelper.sanitize_filename in ruby
->>>>>>> origin/rust-migration-6812869939882800025
         let tar_filename = tar_filename.replace(
             |c: char| !c.is_alphanumeric() && c != '.' && c != '-' && c != '_',
             "_",
@@ -58,10 +54,6 @@ impl Strategy for Tar {
 
             let target_path = canonical_dest.join(&entry_path);
 
-<<<<<<< HEAD
-=======
-            // For security, only extract inside dest_path (avoid path traversal)
->>>>>>> origin/rust-migration-6812869939882800025
             let mut safe_to_extract = false;
             if let Some(parent) = target_path.parent() {
                 std::fs::create_dir_all(parent)?;

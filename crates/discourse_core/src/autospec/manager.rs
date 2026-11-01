@@ -1,18 +1,9 @@
-<<<<<<< HEAD
 use std::collections::HashMap;
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
 
 use super::base_runner::BaseRunner;
 use super::simple_runner::SimpleRunner;
-=======
-use crate::autospec::base_runner::BaseRunner;
-use crate::autospec::simple_runner::SimpleRunner;
-use notify::{RecursiveMode, Result as NotifyResult, Watcher};
-use std::collections::HashMap;
-use std::sync::{Arc, Condvar, Mutex};
-use std::thread;
->>>>>>> origin/rust-migration-6812869939882800025
 
 pub struct Manager {
     pub queue: Arc<Mutex<Vec<(String, String)>>>,
@@ -38,68 +29,6 @@ impl Manager {
     pub fn run(&mut self) {
         self.start_runners();
         self.start_service_queue();
-<<<<<<< HEAD
-=======
-
-        // Spawn file watcher
-        let queue_clone = Arc::clone(&self.queue);
-        let signal_clone = Arc::clone(&self.signal);
-        let abort_runner = Arc::clone(&self.simple_runner);
-        thread::spawn(move || {
-            let mut watcher =
-                notify::recommended_watcher(move |res: NotifyResult<notify::Event>| {
-                    match res {
-                        Ok(event) => {
-                            let mut changes = Vec::new();
-                            for path in event.paths {
-                                if let Some(p) = path.to_str() {
-                                    // Ignore lib/autospec explicitly as in ruby version
-                                    if p.contains("lib/autospec") {
-                                        continue;
-                                    }
-                                    changes.push((p.to_string(), p.to_string()));
-                                }
-                            }
-
-                            if !changes.is_empty() {
-                                abort_runner.lock().unwrap().abort();
-                                let mut q = queue_clone.lock().unwrap();
-                                for (file, spec) in changes {
-                                    q.retain(|(_, s)| !s.trim().starts_with(spec.trim()));
-                                    q.insert(0, (file, spec));
-                                }
-                                signal_clone.notify_all();
-                            }
-                        }
-                        Err(e) => println!("watch error: {:?}", e),
-                    }
-                })
-                .unwrap();
-
-            // Watch relevant directories just like original code
-            let dirs = vec!["spec", "lib", "app", "config", "test", "vendor", "plugins"];
-            for dir in dirs {
-                let _ = watcher.watch(std::path::Path::new(dir), RecursiveMode::Recursive);
-            }
-
-            loop {
-                thread::sleep(std::time::Duration::from_secs(60));
-            }
-        });
-
-        println!("Press [ENTER] to stop the current run");
-        if !self.auto_run_all {
-            println!("Press [ENTER] while stopped to run all specs");
-        }
-
-        self.process_queue();
-    }
-
-    pub fn ensure_all_specs_will_run(&mut self) {
-        let mut q = self.queue.lock().unwrap();
-        q.retain(|(_, s)| s != "spec");
-        q.push(("spec".to_string(), "spec".to_string()));
->>>>>>> origin/rust-migration-6812869939882800025
     }
 
     pub fn start_runners(&self) {
@@ -123,7 +52,6 @@ impl Manager {
         let runner_arc = self.simple_runner.clone();
 
         thread::spawn(move || loop {
-<<<<<<< HEAD
             let (file, spec) = {
                 let mut q = queue.lock().unwrap();
                 while q.is_empty() {
@@ -134,68 +62,6 @@ impl Manager {
 
             let mut runner = runner_arc.lock().unwrap();
             runner.run(&format!("{} {}", file, spec));
-        });
-    }
-
-    pub fn queue_specs(&self, specs: Vec<(String, String)>) {
-=======
-            let mut current: Option<(String, String)> = None;
-            {
-                let q = queue.lock().unwrap();
-                if let Some(c) = q.first() {
-                    current = Some(c.clone());
-                }
-            }
-
-            let mut last_failed = false;
-            if let Some(c) = current {
-                last_failed = {
-                    let result = {
-                        let r = runner.lock().unwrap();
-                        r.run(&c.1)
-                    };
-
-                    if result == 0 {
-                        let mut q = queue.lock().unwrap();
-                        if !q.is_empty() {
-                            q.remove(0);
-                        }
-                        false
-                    } else {
-                        true
-                    }
-                };
-
-                if last_failed {
-                    let mut q = queue.lock().unwrap();
-                    if let Some(first) = q.first() {
-                        if first.0 == "focus" {
-                            q.remove(0);
-                        }
-                    }
-
-                    let failed_specs = {
-                        let r = runner.lock().unwrap();
-                        r.failed_specs()
-                    };
-
-                    let specs_to_focus = failed_specs.into_iter().take(11).collect::<Vec<_>>();
-
-                    if !specs_to_focus.is_empty() {
-                        q.insert(0, ("focus".to_string(), specs_to_focus.join(" ")));
-                    }
-
-                    if auto_run_all {
-                        q.retain(|(_, s)| s != "spec");
-                        q.push(("spec".to_string(), "spec".to_string()));
-                    }
-                }
-            }
-
-            let mut guard = queue.lock().unwrap();
-            if guard.is_empty() || last_failed {
-                guard = signal.wait(guard).unwrap();
-            }
         });
     }
 
@@ -211,9 +77,7 @@ impl Manager {
         file.to_string()
     }
 
-    pub fn listen_for_changes(&self) {
-        // Covered in run via thread
-    }
+    pub fn listen_for_changes(&self) {}
 
     pub fn process_change(&mut self, _files: Vec<(String, Option<usize>)>) {}
 
@@ -227,36 +91,9 @@ impl Manager {
             self.abort_runners();
         }
 
->>>>>>> origin/rust-migration-6812869939882800025
         let mut q = self.queue.lock().unwrap();
         for (file, spec) in specs {
-<<<<<<< HEAD
             q.push((file, spec));
-=======
-            q.retain(|(_, s)| !s.trim().starts_with(spec.trim()));
-
-            if let Some(focus) = q.first().cloned() {
-                if focus.0 == "focus" {
-                    q.remove(0);
-                    q.insert(0, (file.clone(), spec.clone()));
-
-                    if (!spec.contains(':') || !focus.1.contains(spec.split(':').next().unwrap()))
-                        && (focus.1.contains(&spec) || file != spec)
-                    {
-                        q.insert(0, focus.clone());
-                    }
-                } else {
-                    q.insert(0, (file.clone(), spec.clone()));
-                }
-            } else {
-                q.insert(0, (file.clone(), spec.clone()));
-            }
-
-            if self.auto_run_all {
-                q.retain(|(_, s)| s != "spec");
-                q.push(("spec".to_string(), "spec".to_string()));
-            }
->>>>>>> origin/rust-migration-6812869939882800025
         }
         self.signal.notify_all();
     }
@@ -277,17 +114,7 @@ impl Manager {
             if specs.is_empty() {
                 self.abort_runners();
             } else {
-<<<<<<< HEAD
                 let new_specs: Vec<(String, String)> = specs.into_iter().map(|s| (s.clone(), s)).collect();
-=======
-                println!("The following specs have failed:");
-                for s in &specs {
-                    println!("{}", s);
-                }
-                println!();
-                let new_specs: Vec<(String, String)> =
-                    specs.into_iter().map(|s| (s.clone(), s)).collect();
->>>>>>> origin/rust-migration-6812869939882800025
                 self.queue_specs(new_specs);
             }
         }

@@ -22,20 +22,6 @@ pub fn run() -> Result<String, ChromeError> {
 
     if binary.is_none()
         && Command::new("sh")
-<<<<<<< HEAD
-=======
-            .arg("-c")
-            .arg("command -v google-chrome >/dev/null")
-            .status()
-            .map(|s| s.success())
-            .unwrap_or(false)
-    {
-        binary = Some("google-chrome".to_string());
-    }
-
-    if binary.is_none()
-        && Command::new("sh")
->>>>>>> origin/rust-migration-6812869939882800025
             .arg("-c")
             .arg("command -v chromium >/dev/null")
             .status()

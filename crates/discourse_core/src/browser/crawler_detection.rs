@@ -53,33 +53,16 @@ pub const DEFAULT_CRAWLERS: &[&str] = &[
 pub struct CrawlerDetection;
 
 impl CrawlerDetection {
-<<<<<<< HEAD
     pub fn to_matcher(custom_agents: &str, is_test: bool) -> Regex {
         let mut escaped: Vec<String> = DEFAULT_CRAWLERS
             .iter()
             .map(|agent| regex::escape(agent))
-=======
-    pub const WAYBACK_MACHINE_URL: &'static str = "archive.org";
-
-    pub fn to_matcher(string: &str, is_real_and_test: bool) -> Regex {
-        if string.is_empty() {
-            // Return a regex that never matches anything
-            // In rust regex `$` matches end of string, so matching `a^` is impossible
-            return Regex::new(r"a^").unwrap();
-        }
-
-        let mut escaped: Vec<String> = string
-            .split('|')
-            .filter(|s| !s.is_empty())
-            .map(regex::escape)
->>>>>>> origin/rust-migration-6812869939882800025
             .collect();
 
         if is_test {
             escaped.push(regex::escape("Rails Testing"));
         }
 
-<<<<<<< HEAD
         if !custom_agents.trim().is_empty() {
             for agent in custom_agents.split('|') {
                 let trimmed = agent.trim();
@@ -87,10 +70,6 @@ impl CrawlerDetection {
                     escaped.push(regex::escape(trimmed));
                 }
             }
-=======
-        if escaped.is_empty() {
-            return Regex::new(r"a^").unwrap();
->>>>>>> origin/rust-migration-6812869939882800025
         }
 
         let pattern = format!("(?i)({})", escaped.join("|"));
@@ -105,19 +84,10 @@ impl CrawlerDetection {
         crawler_check_bypass_agents: &str,
         is_test: bool,
     ) -> bool {
-<<<<<<< HEAD
         let agent = match user_agent {
             Some(a) if !a.trim().is_empty() => a,
             _ => return true,
         };
-=======
-        let ua_contains_wayback = user_agent
-            .map(|ua| ua.contains(Self::WAYBACK_MACHINE_URL))
-            .unwrap_or(false);
-        let via_contains_wayback = via_header
-            .map(|via| via.contains(Self::WAYBACK_MACHINE_URL))
-            .unwrap_or(false);
->>>>>>> origin/rust-migration-6812869939882800025
 
         if !crawler_check_bypass_agents.trim().is_empty() {
             let bypass_re = Regex::new(&format!("(?i)({})", crawler_check_bypass_agents)).unwrap();
@@ -162,25 +132,12 @@ impl CrawlerDetection {
             }
         }
 
-<<<<<<< HEAD
         if !allowed_crawler_user_agents.trim().is_empty() {
             let allowed_re =
                 Regex::new(&format!("(?i)({})", allowed_crawler_user_agents)).unwrap();
             if allowed_re.is_match(agent) {
                 return true;
             }
-=======
-        if !allowed_crawler_user_agents.is_empty() {
-            let allowlisted = Self::to_matcher(allowed_crawler_user_agents, false);
-            user_agent
-                .map(|ua| allowlisted.is_match(ua))
-                .unwrap_or(false)
-        } else {
-            let blocklisted = Self::to_matcher(blocked_crawler_user_agents, false);
-            user_agent
-                .map(|ua| !blocklisted.is_match(ua))
-                .unwrap_or(true)
->>>>>>> origin/rust-migration-6812869939882800025
         }
 
         false

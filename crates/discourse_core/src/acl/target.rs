@@ -214,7 +214,6 @@ impl TargetAcl {
 mod tests {
     use super::*;
 
-<<<<<<< HEAD
     fn setup_acl() -> TargetAcl {
         let mut acl = TargetAcl::new();
 
@@ -243,53 +242,6 @@ mod tests {
         acl.user_permissions.insert("owner".to_string(), owner_users);
 
         acl
-=======
-    fn setup_acl() -> Target {
-        Target::new(vec![
-            TargetAclItem {
-                acl_type: "group".to_string(),
-                id: 1,
-                permission: "view".to_string(),
-                target_type: "Category".to_string(),
-                target_id: 5,
-            },
-            TargetAclItem {
-                acl_type: "group".to_string(),
-                id: 1,
-                permission: "edit".to_string(),
-                target_type: "Category".to_string(),
-                target_id: 5,
-            },
-            TargetAclItem {
-                acl_type: "group".to_string(),
-                id: 22,
-                permission: "view".to_string(),
-                target_type: "Category".to_string(),
-                target_id: 5,
-            },
-            TargetAclItem {
-                acl_type: "user".to_string(),
-                id: 2,
-                permission: "manage".to_string(),
-                target_type: "Category".to_string(),
-                target_id: 5,
-            },
-            TargetAclItem {
-                acl_type: "user".to_string(),
-                id: 99,
-                permission: "view".to_string(),
-                target_type: "Category".to_string(),
-                target_id: 5,
-            },
-            TargetAclItem {
-                acl_type: "user".to_string(),
-                id: 3,
-                permission: "owner".to_string(),
-                target_type: "Category".to_string(),
-                target_id: 5,
-            },
-        ])
->>>>>>> origin/rust-migration-6812869939882800025
     }
 
     #[test]

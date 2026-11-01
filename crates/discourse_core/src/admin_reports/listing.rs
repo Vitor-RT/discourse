@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-=======
-use crate::admin_reports::registry::Registry;
-use crate::admin_reports::resolved_report::ResolvedReport;
-use serde::Serialize;
->>>>>>> origin/rust-migration-6812869939882800025
 use std::collections::HashMap;
 
 use super::registry::Registry;
@@ -34,17 +28,10 @@ pub struct Listing<'a> {
 impl<'a> Listing<'a> {
     pub fn new(
         registry: &'a Registry,
-<<<<<<< HEAD
         raw_cursor: Option<HashMap<String, String>>,
         search_raw: Option<String>,
     ) -> Self {
         let cursor = Self::normalize_cursor(raw_cursor);
-=======
-        cursor_raw: Option<HashMap<String, String>>,
-        search_raw: Option<String>,
-    ) -> Self {
-        let cursor = Listing::normalize_cursor(cursor_raw);
->>>>>>> origin/rust-migration-6812869939882800025
         let search = search_raw.filter(|s| !s.trim().is_empty());
         Self {
             registry,

@@ -33,7 +33,6 @@ pub struct AdminDashboardReportModel {
     pub cols: usize,
 }
 
-<<<<<<< HEAD
 pub trait AdminDashboardReportQueryStore {
     fn get_all_ordered_by_created_at_desc(&self) -> Vec<AdminDashboardReportModel>;
 }
@@ -52,25 +51,11 @@ impl<'a, Q: AdminDashboardReportQueryStore> Section<'a, Q> {
         store: &'a Q,
         search_query: Option<String>,
     ) -> Self {
-=======
-impl<'a> Section<'a> {
-    pub fn new(
-        visible_cap: usize,
-        registry: &'a Registry,
-        store: &'a dyn AdminDashboardReportQueryStore,
-        search: Option<String>,
-    ) -> Self {
-        let search = search.filter(|s| !s.trim().is_empty());
->>>>>>> origin/rust-migration-6812869939882800025
         Self {
             visible_cap,
             registry,
             store,
-<<<<<<< HEAD
             search_query,
-=======
-            search,
->>>>>>> origin/rust-migration-6812869939882800025
         }
     }
 
@@ -82,14 +67,7 @@ impl<'a> Section<'a> {
             &all_records[..]
         };
 
-<<<<<<< HEAD
         let resolved_map = self.resolve_records(records, guardian);
-=======
-        let mut serialized: Vec<SectionItem> = items
-            .into_iter()
-            .map(|(record, resolved)| self.serialize(&resolved, &record))
-            .collect();
->>>>>>> origin/rust-migration-6812869939882800025
 
         let mut survivors = Vec::new();
         for record in records {
@@ -98,31 +76,6 @@ impl<'a> Section<'a> {
             }
         }
 
-<<<<<<< HEAD
-=======
-        SectionResult { items: serialized }
-    }
-
-    fn visible_items(
-        &self,
-        guardian: &dyn std::any::Any,
-    ) -> Vec<(AdminDashboardReportModel, ResolvedReport)> {
-        let records = self.store.get_all_ordered_by_created_at_desc();
-
-        let resolved_by_record_id = self.resolve_records(&records, guardian);
-
-        // Filter those that were resolved, take up to VISIBLE_CAP, then sort by position
-        let mut survivors: Vec<(AdminDashboardReportModel, ResolvedReport)> = records
-            .into_iter()
-            .filter_map(|record| {
-                resolved_by_record_id
-                    .get(&record.id)
-                    .map(|obj| (record, obj.clone()))
-            })
-            .take(self.visible_cap)
-            .collect();
-
->>>>>>> origin/rust-migration-6812869939882800025
         survivors.sort_by_key(|(record, _)| record.position);
 
         let mut items = Vec::new();
@@ -142,10 +95,6 @@ impl<'a> Section<'a> {
         records: &[AdminDashboardReportModel],
         guardian: &dyn std::any::Any,
     ) -> HashMap<u64, ResolvedReport> {
-<<<<<<< HEAD
-=======
-        // dispatch_per_source
->>>>>>> origin/rust-migration-6812869939882800025
         let per_source = self.registry.dispatch_per_source(
             records,
             |record| record.source.clone(),
@@ -248,11 +197,7 @@ mod tests {
             _ids: &[String],
             _g: &dyn std::any::Any,
             _f: &HashMap<String, String>,
-<<<<<<< HEAD
         ) -> HashMap<String, Value> {
-=======
-        ) -> HashMap<String, serde_json::Value> {
->>>>>>> origin/rust-migration-6812869939882800025
             HashMap::new()
         }
         fn list_all(
@@ -292,10 +237,6 @@ mod tests {
             label_val: Some("Fake".to_string()),
         })]);
 
-<<<<<<< HEAD
-=======
-        // ordered by created_at DESC from store, but they should be sorted by position
->>>>>>> origin/rust-migration-6812869939882800025
         let store = MockQueryStore {
             records: vec![
                 AdminDashboardReportModel {

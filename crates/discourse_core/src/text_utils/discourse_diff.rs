@@ -402,9 +402,9 @@ impl HtmlTokenizer {
         use html5gum::{Token, Tokenizer};
         let mut t = Vec::new();
 
-        for token in Tokenizer::new(html).infallible() {
+        for token in Tokenizer::new(html) {
             match token {
-                Token::StartTag(tag) => {
+                Ok(Token::StartTag(tag)) => {
                     let name = String::from_utf8_lossy(&tag.name).to_string();
                     if name == "html" || name == "body" {
                         continue;
@@ -420,7 +420,7 @@ impl HtmlTokenizer {
 
                     t.push(format!("<{}{}>", name, attrs));
                 }
-                Token::EndTag(tag) => {
+                Ok(Token::EndTag(tag)) => {
                     let name = String::from_utf8_lossy(&tag.name).to_string();
                     let autoclosings = vec![
                         "area", "base", "br", "col", "embed", "hr", "img", "input", "meta",
@@ -430,7 +430,7 @@ impl HtmlTokenizer {
                     }
                     t.push(format!("</{}>", name));
                 }
-                Token::String(s) => {
+                Ok(Token::String(s)) => {
                     let string = String::from_utf8_lossy(&s).to_string();
                     if string.trim().is_empty()
                         && t.last().map(|s| s.starts_with('<')).unwrap_or(false)

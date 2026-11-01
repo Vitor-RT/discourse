@@ -36,7 +36,12 @@ impl Strategy for Zip {
                     continue;
                 }
 
+<<<<<<< HEAD
                 let name_str = name.to_string_lossy().replace('\\', "/");
+=======
+                // Ruby code uses forward slashes in zip archives
+                let name_str = name.to_string_lossy().replace("\\", "/");
+>>>>>>> origin/rust-migration-6812869939882800025
 
                 if path.is_file() {
                     zip.start_file(name_str, options)?;
@@ -73,19 +78,31 @@ impl Strategy for Zip {
         std::fs::create_dir_all(dest_path)?;
         let canonical_dest = dest_path.canonicalize()?;
 
+<<<<<<< HEAD
         let chunk_size = 1024 * 1024 * 2;
+=======
+        let chunk_size = 1024 * 1024 * 2; // 2MiB
+>>>>>>> origin/rust-migration-6812869939882800025
         let mut remaining_size = max_size;
 
         for i in 0..archive.len() {
             let mut entry = archive.by_index(i)?;
             let entry_name = entry.name().to_string();
 
+<<<<<<< HEAD
+=======
+            // Skip symlinks (not implemented here safely, matching ruby code intent)
+>>>>>>> origin/rust-migration-6812869939882800025
             if entry.is_symlink() {
                 continue;
             }
 
             let entry_path = canonical_dest.join(&entry_name);
 
+<<<<<<< HEAD
+=======
+            // Check if it escapes dest directory
+>>>>>>> origin/rust-migration-6812869939882800025
             let safe = if let Some(parent) = entry_path.parent() {
                 std::fs::create_dir_all(parent)?;
                 if let Ok(canon_parent) = parent.canonicalize() {

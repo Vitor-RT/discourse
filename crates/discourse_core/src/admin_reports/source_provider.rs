@@ -20,6 +20,7 @@ pub trait SourceProvider: Send + Sync {
         HashMap::new()
     }
 
+<<<<<<< HEAD
     fn fetch_many(
         &self,
         _identifiers: &[String],
@@ -29,6 +30,21 @@ pub trait SourceProvider: Send + Sync {
         HashMap::new()
     }
 
+=======
+    fn resolve_many(
+        &self,
+        identifiers: &[String],
+        guardian: &dyn std::any::Any,
+    ) -> HashMap<String, ResolvedReport>;
+
+    fn fetch_many(
+        &self,
+        identifiers: &[String],
+        guardian: &dyn std::any::Any,
+        filters: &HashMap<String, String>,
+    ) -> HashMap<String, serde_json::Value>;
+
+>>>>>>> origin/rust-migration-6812869939882800025
     fn prewarm(
         &self,
         _identifiers: &[String],
@@ -39,12 +55,19 @@ pub trait SourceProvider: Send + Sync {
 
     fn list_all(
         &self,
+<<<<<<< HEAD
         _search: Option<&str>,
         _after: Option<&HashMap<String, String>>,
         _limit: Option<usize>,
     ) -> Vec<ResolvedReport> {
         Vec::new()
     }
+=======
+        search: Option<&str>,
+        after: Option<&HashMap<String, String>>,
+        limit: Option<usize>,
+    ) -> Vec<ResolvedReport>;
+>>>>>>> origin/rust-migration-6812869939882800025
 
     fn accessible_ids(
         &self,
@@ -55,6 +78,7 @@ pub trait SourceProvider: Send + Sync {
             .keys()
             .cloned()
             .collect()
+<<<<<<< HEAD
     }
 
     fn accessible_report_identifiers(
@@ -72,5 +96,7 @@ pub trait SourceProvider: Send + Sync {
         guardian: &dyn std::any::Any,
     ) -> HashMap<String, serde_json::Value> {
         self.fetch_many(identifiers, guardian, filters)
+=======
+>>>>>>> origin/rust-migration-6812869939882800025
     }
 }

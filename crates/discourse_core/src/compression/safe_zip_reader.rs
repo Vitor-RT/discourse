@@ -1,6 +1,6 @@
+use super::strategy::CompressionError;
 use std::fs::File;
 use zip::ZipArchive;
-use super::strategy::CompressionError;
 
 pub struct SafeZipReader {
     pub archive: ZipArchive<File>,

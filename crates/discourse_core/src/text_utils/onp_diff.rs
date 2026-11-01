@@ -91,8 +91,15 @@ impl<'a> ONPDiff<'a> {
 
         let mut p = 0;
         loop {
+<<<<<<< HEAD
             let mut k = -(p as isize);
             while k <= self.delta - 1 {
+=======
+            p += 1;
+
+            let mut k = -p;
+            while k < self.delta {
+>>>>>>> origin/rust-migration-6812869939882800025
                 fp[(k + self.offset as isize) as usize] = self.snake(
                     k,
                     fp[(k - 1 + self.offset as isize) as usize] + 1,
@@ -102,7 +109,7 @@ impl<'a> ONPDiff<'a> {
             }
 
             k = self.delta + p;
-            while k >= self.delta + 1 {
+            while k > self.delta {
                 fp[(k + self.offset as isize) as usize] = self.snake(
                     k,
                     fp[(k - 1 + self.offset as isize) as usize] + 1,

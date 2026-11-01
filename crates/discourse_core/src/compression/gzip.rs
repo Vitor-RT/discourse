@@ -1,10 +1,10 @@
-use std::fs::File;
-use std::io::{Read, Write};
-use std::path::Path;
+use super::strategy::{CompressionError, Strategy};
 use flate2::read::GzDecoder;
 use flate2::write::GzEncoder;
 use flate2::Compression;
-use super::strategy::{Strategy, CompressionError};
+use std::fs::File;
+use std::io::{Read, Write};
+use std::path::Path;
 
 pub struct Gzip;
 

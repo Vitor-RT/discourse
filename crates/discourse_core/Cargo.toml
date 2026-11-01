@@ -23,10 +23,14 @@ flate2 = "1.0"
 zip = "2.0"
 thiserror = "2.0"
 once_cell = "1.18"
+<<<<<<< HEAD
 roxmltree = "0.21"
 ammonia = "3.3"
 reqwest = { version = "0.11", features = ["blocking"] }
 any_ascii = "0.3"
+=======
+magnus = "0.9.3"
+>>>>>>> origin/rust-migration-6812869939882800025
 
 [dev-dependencies]
 tempfile = "3.2"

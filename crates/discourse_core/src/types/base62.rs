@@ -18,11 +18,19 @@ pub fn encode(mut num: u64) -> String {
 pub fn decode(str: &str) -> u64 {
     let mut num = 0;
     for c in str.chars() {
+<<<<<<< HEAD
         let val = if c.is_ascii_digit() {
             c as u64 - '0' as u64
         } else if c.is_ascii_lowercase() {
             c as u64 - 'a' as u64 + 10
         } else if c.is_ascii_uppercase() {
+=======
+        let val = if ('0'..='9').contains(&c) {
+            c as u64 - '0' as u64
+        } else if ('a'..='z').contains(&c) {
+            c as u64 - 'a' as u64 + 10
+        } else if ('A'..='Z').contains(&c) {
+>>>>>>> origin/rust-migration-6812869939882800025
             c as u64 - 'A' as u64 + 36
         } else {
             0

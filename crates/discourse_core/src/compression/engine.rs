@@ -1,9 +1,9 @@
-use std::path::Path;
-use super::strategy::{Strategy, CompressionError};
-use super::zip::Zip;
-use super::tar::Tar;
 use super::gzip::Gzip;
 use super::pipeline::Pipeline;
+use super::strategy::{CompressionError, Strategy};
+use super::tar::Tar;
+use super::zip::Zip;
+use std::path::Path;
 
 pub struct Engine {
     strategy: Box<dyn Strategy>,
@@ -83,11 +83,19 @@ mod tests {
 
         let engine = Engine::engine_for("test_zip.zip").unwrap();
 
+<<<<<<< HEAD
+=======
+        // compress
+>>>>>>> origin/rust-migration-6812869939882800025
         let compressed_path = engine.compress(dir.path(), folder_name).unwrap();
         assert!(Path::new(&compressed_path).exists());
 
         fs::remove_dir_all(&folder_path).unwrap();
 
+<<<<<<< HEAD
+=======
+        // decompress
+>>>>>>> origin/rust-migration-6812869939882800025
         let extract_location = dir.path().join("extract_location");
         engine
             .decompress(&extract_location, Path::new(&compressed_path), 10_000_000)

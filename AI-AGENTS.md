@@ -98,3 +98,9 @@ use `bin/lint --fix --recent` only when appropriate.
 - Follow project conventions, prevent knowledge silos
 - Recommend storage locations by info type
 - Inform when this file changes and reloads
+
+## Discourse Rust Migration Protocol
+- All Ruby code in `lib/` and `app/` is being progressively migrated to idiomatic, safe Rust crates under `crates/discourse_core/`.
+- Focus on translating Ruby logic and unit tests into Rust native `#[cfg(test)]` modules verified via `cargo check` and `cargo test`.
+- All migration PRs target the `rust-migration` branch.
+- Once a Ruby file/module is translated and verified in Rust, the legacy `.rb` file is removed from `lib/` or `app/`.

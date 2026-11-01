@@ -1,4 +1,6 @@
 use crate::backup::logger::Logger;
+use crate::backup::meta_data_handler::MetaDataHandler;
+use crate::backup::backup_file_handler::BackupFileHandler;
 use std::cell::RefCell;
 
 // Stubs for future implementation
@@ -9,19 +11,6 @@ pub struct UploadsRestorer<'a> {
 pub struct DatabaseRestorer<'a> {
     _logger: &'a RefCell<Logger>,
     _current_db: String,
-}
-
-pub struct MetaDataHandler<'a> {
-    _logger: &'a RefCell<Logger>,
-    _filename: String,
-    _tmp_directory: String,
-}
-
-pub struct BackupFileHandler<'a> {
-    _logger: &'a RefCell<Logger>,
-    _filename: String,
-    _current_db: String,
-    _location: String,
 }
 
 pub struct Factory {
@@ -44,9 +33,39 @@ impl Factory {
         self.logger.borrow_mut()
     }
 
-    // These need to return objects that borrow logger. We use RefCell to allow multiple things
-    // to borrow it if needed, or just let them take a reference to it.
-    // However, given the design, let's keep it simple and return the structs.
+    pub fn meta_data_handler<'a>(
+        &'a self,
+        filename: String,
+        tmp_directory: String,
+        current_database_version: usize,
+        current_discourse_version: String,
+        version_prefix: String,
+    ) -> MetaDataHandler<'a> {
+        MetaDataHandler::new(
+            &self.logger,
+            filename,
+            tmp_directory,
+            current_database_version,
+            current_discourse_version,
+            version_prefix,
+        )
+    }
+
+    pub fn backup_file_handler<'a>(
+        &'a self,
+        filename: String,
+        current_db: String,
+        root_tmp_directory: String,
+        location: Option<String>,
+    ) -> BackupFileHandler<'a> {
+        BackupFileHandler::new(
+            &self.logger,
+            filename,
+            current_db,
+            root_tmp_directory,
+            location,
+        )
+    }
 }
 
 #[cfg(test)]

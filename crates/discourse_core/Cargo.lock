@@ -311,6 +311,7 @@ dependencies = [
  "notify",
  "once_cell",
  "regex",
+ "rutie",
  "scraper",
  "serde",
  "serde_json",
@@ -1242,6 +1243,16 @@ name = "rustversion"
 version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf54715a573b99ac80df0bc206da022bcd442c974952c7b9720069370852e21f"
+
+[[package]]
+name = "rutie"
+version = "0.8.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d97db4cbb9739b48364c38cc9a6ebabdc07b42bd87b60ab448e1f29eaebb2ac"
+dependencies = [
+ "lazy_static",
+ "libc",
+]
 
 [[package]]
 name = "same-file"

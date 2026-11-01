@@ -1,0 +1,70 @@
+use crate::backup::logger::Logger;
+use std::cell::RefCell;
+
+// Stubs for future implementation
+pub struct UploadsRestorer<'a> {
+    _logger: &'a RefCell<Logger>,
+}
+
+pub struct DatabaseRestorer<'a> {
+    _logger: &'a RefCell<Logger>,
+    _current_db: String,
+}
+
+pub struct MetaDataHandler<'a> {
+    _logger: &'a RefCell<Logger>,
+    _filename: String,
+    _tmp_directory: String,
+}
+
+pub struct BackupFileHandler<'a> {
+    _logger: &'a RefCell<Logger>,
+    _filename: String,
+    _current_db: String,
+    _location: String,
+}
+
+pub struct Factory {
+    pub user_id: Option<i32>,
+    pub client_id: Option<String>,
+    logger: RefCell<Logger>,
+}
+
+impl Factory {
+    pub fn new(user_id: Option<i32>, client_id: Option<String>) -> Self {
+        let logger = Logger::new(user_id, client_id.clone());
+        Self {
+            user_id,
+            client_id,
+            logger: RefCell::new(logger),
+        }
+    }
+
+    pub fn logger(&self) -> std::cell::RefMut<'_, Logger> {
+        self.logger.borrow_mut()
+    }
+
+    // These need to return objects that borrow logger. We use RefCell to allow multiple things
+    // to borrow it if needed, or just let them take a reference to it.
+    // However, given the design, let's keep it simple and return the structs.
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_factory_initialization() {
+        let factory = Factory::new(Some(42), Some("client_xyz".to_string()));
+        assert_eq!(factory.user_id, Some(42));
+        assert_eq!(factory.client_id, Some("client_xyz".to_string()));
+    }
+
+    #[test]
+    fn test_factory_logger() {
+        let factory = Factory::new(None, None);
+        let mut logger = factory.logger();
+        logger.log("test", None);
+        assert_eq!(logger.logs.len(), 1);
+    }
+}

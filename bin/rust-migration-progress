@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -e
+
+echo "=========================================================="
+echo "      DISCOURSE RUST MIGRATION PROGRESS DASHBOARD         "
+echo "=========================================================="
+
+ruby_files=$(find app lib -type f -name "*.rb" 2>/dev/null | wc -l | tr -d ' ')
+rust_files=$(find crates -type f -name "*.rs" 2>/dev/null | wc -l | tr -d ' ')
+
+ruby_loc=$(find app lib -type f -name "*.rb" 2>/dev/null | xargs wc -l 2>/dev/null | tail -n 1 | awk '{print $1}')
+rust_loc=$(find crates -type f -name "*.rs" 2>/dev/null | xargs wc -l 2>/dev/null | tail -n 1 | awk '{print $1}')
+
+ruby_loc=${ruby_loc:-0}
+rust_loc=${rust_loc:-0}
+
+total_loc=$((ruby_loc + rust_loc))
+
+if [ "$total_loc" -gt 0 ]; then
+    percentage=$(( (rust_loc * 100) / total_loc ))
+else
+    percentage=0
+fi
+
+echo ""
+echo "📊 RESUMO GERAL DA MIGRAÇÃO:"
+echo "----------------------------------------------------------"
+echo "  • Arquivos Ruby Restantes (.rb):  $ruby_files"
+echo "  • Arquivos Rust Criados (.rs):     $rust_files"
+echo "  • Linhas de Código Ruby (.rb):    $ruby_loc LOC"
+echo "  • Linhas de Código Rust (.rs):    $rust_loc LOC"
+echo "  • Progresso da Migração:         $percentage% concluído"
+echo "----------------------------------------------------------"
+
+echo ""
+echo "📂 DETALHAMENTO POR CAMADA (ARQUIVOS RUBY RESTANTES):"
+echo "----------------------------------------------------------"
+
+count_lib=$(find lib -type f -name "*.rb" 2>/dev/null | wc -l | tr -d ' ')
+count_models=$(find app/models -type f -name "*.rb" 2>/dev/null | wc -l | tr -d ' ')
+count_controllers=$(find app/controllers -type f -name "*.rb" 2>/dev/null | wc -l | tr -d ' ')
+count_jobs=$(find app/jobs -type f -name "*.rb" 2>/dev/null | wc -l | tr -d ' ')
+count_services=$(find app/services -type f -name "*.rb" 2>/dev/null | wc -l | tr -d ' ')
+count_serializers=$(find app/serializers -type f -name "*.rb" 2>/dev/null | wc -l | tr -d ' ')
+
+echo "  • lib/ (Utilitários & Libs):      $count_lib arquivos"
+echo "  • app/models/ (Modelos DB):       $count_models arquivos"
+echo "  • app/controllers/ (APIs HTTP):   $count_controllers arquivos"
+echo "  • app/services/ (Serviços):       $count_services arquivos"
+echo "  • app/jobs/ (Background Jobs):    $count_jobs arquivos"
+echo "  • app/serializers/ (DTOs):        $count_serializers arquivos"
+echo "=========================================================="

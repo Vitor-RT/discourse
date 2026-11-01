@@ -9,6 +9,7 @@ pub mod compression;
 pub mod csp;
 pub mod demons;
 pub mod email;
+pub mod file_store;
 pub mod logging;
 pub mod onebox;
 pub mod pretty_text;

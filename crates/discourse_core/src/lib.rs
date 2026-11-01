@@ -9,3 +9,4 @@ pub mod demons;
 pub mod logging;
 pub mod text_utils;
 pub mod types;
+pub mod text_cleaner;

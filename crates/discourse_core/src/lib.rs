@@ -1,5 +1,6 @@
 pub mod acl;
 pub mod admin_reports;
+pub mod auth;
 pub mod autospec;
 pub mod backup;
 pub mod browser;

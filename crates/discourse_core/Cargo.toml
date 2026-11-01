@@ -27,6 +27,9 @@ roxmltree = "0.21"
 ammonia = "3.3"
 reqwest = { version = "0.11", features = ["blocking"] }
 any_ascii = "0.3"
+deadpool-redis = "0.14"
+redis = { version = "0.24", features = ["tokio-comp", "aio"] }
+tokio = { version = "1.35", features = ["full"] }
 
 [dev-dependencies]
 tempfile = "3.2"

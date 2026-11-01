@@ -13,6 +13,7 @@ pub mod file_store;
 pub mod logging;
 pub mod onebox;
 pub mod pretty_text;
+pub mod rate_limiter;
 pub mod reviewable;
 pub mod search;
 pub mod site_settings;

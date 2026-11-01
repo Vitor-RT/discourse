@@ -1,3 +1,4 @@
+pub mod cache;
 pub mod acl;
 pub mod admin_reports;
 pub mod autospec;

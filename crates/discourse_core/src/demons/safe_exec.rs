@@ -47,12 +47,20 @@ impl SafeExec {
         if !success_status_codes.contains(&status) {
             let mut message = command.join(" ");
             if !failure_message.is_empty() {
+<<<<<<< HEAD
                 message.push('\n');
+=======
+                message.push_str("\n");
+>>>>>>> origin/rust-migration-7847495834899956704
                 message.push_str(failure_message);
             }
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             if !stderr.is_empty() {
+<<<<<<< HEAD
                 message.push('\n');
+=======
+                message.push_str("\n");
+>>>>>>> origin/rust-migration-7847495834899956704
                 message.push_str(&stderr);
             }
 

@@ -30,10 +30,16 @@ impl<'a> BulkFetch<'a> {
         filters: &HashMap<String, String>,
         guardian: &dyn std::any::Any,
     ) -> BulkFetchResult {
+<<<<<<< HEAD
         let payloads: Vec<Result<Option<Value>, ()>> = items
             .iter()
             .map(|item| self.fetch_item(item, filters, guardian))
             .collect();
+=======
+        let payloads: Vec<Result<Option<Value>, ()>> = items.iter().map(|item| {
+            self.fetch_item(item, filters, guardian)
+        }).collect();
+>>>>>>> origin/rust-migration-7847495834899956704
 
         let mut results = Vec::with_capacity(items.len());
         for (item, payload_res) in items.iter().zip(payloads) {
@@ -99,8 +105,13 @@ impl<'a> BulkFetch<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+<<<<<<< HEAD
     use crate::admin_reports::resolved_report::ResolvedReport;
     use crate::admin_reports::source_provider::SourceProvider;
+=======
+    use crate::admin_reports::source_provider::SourceProvider;
+    use crate::admin_reports::resolved_report::ResolvedReport;
+>>>>>>> origin/rust-migration-7847495834899956704
     use serde_json::json;
 
     struct DummyProvider {
@@ -109,6 +120,7 @@ mod tests {
     }
 
     impl SourceProvider for DummyProvider {
+<<<<<<< HEAD
         fn source_name(&self) -> String {
             self.name.clone()
         }
@@ -128,6 +140,12 @@ mod tests {
             _g: &dyn std::any::Any,
             _f: &HashMap<String, String>,
         ) -> HashMap<String, Value> {
+=======
+        fn source_name(&self) -> String { self.name.clone() }
+        fn label(&self) -> Option<String> { None }
+        fn resolve_many(&self, _ids: &[String], _g: &dyn std::any::Any) -> HashMap<String, ResolvedReport> { HashMap::new() }
+        fn fetch_many(&self, ids: &[String], _g: &dyn std::any::Any, _f: &HashMap<String, String>) -> HashMap<String, Value> {
+>>>>>>> origin/rust-migration-7847495834899956704
             let mut result = HashMap::new();
             for id in ids {
                 if let Some(v) = self.payloads.get(id) {
@@ -136,6 +154,7 @@ mod tests {
             }
             result
         }
+<<<<<<< HEAD
         fn list_all(
             &self,
             _s: Option<&str>,
@@ -144,16 +163,23 @@ mod tests {
         ) -> Vec<ResolvedReport> {
             vec![]
         }
+=======
+        fn list_all(&self, _s: Option<&str>, _a: Option<&HashMap<String, String>>, _l: Option<usize>) -> Vec<ResolvedReport> { vec![] }
+>>>>>>> origin/rust-migration-7847495834899956704
     }
 
     #[test]
     fn test_bulk_fetch_call() {
         let mut payloads = HashMap::new();
         payloads.insert("signups".to_string(), json!({ "type": "signups" }));
+<<<<<<< HEAD
         payloads.insert(
             "broken_query".to_string(),
             json!({ "error": "syntax error" }),
         );
+=======
+        payloads.insert("broken_query".to_string(), json!({ "error": "syntax error" }));
+>>>>>>> origin/rust-migration-7847495834899956704
 
         let provider = Box::new(DummyProvider {
             name: "core_report".to_string(),
@@ -161,6 +187,7 @@ mod tests {
         });
 
         let registry = Registry::new(vec![provider]);
+<<<<<<< HEAD
         let bulk_fetch = BulkFetch {
             registry: &registry,
         };
@@ -182,6 +209,15 @@ mod tests {
                 source: "unknown".to_string(),
                 identifier: "x".to_string(),
             },
+=======
+        let bulk_fetch = BulkFetch { registry: &registry };
+
+        let items = vec![
+            BulkFetchItem { source: "core_report".to_string(), identifier: "signups".to_string() },
+            BulkFetchItem { source: "core_report".to_string(), identifier: "broken_query".to_string() },
+            BulkFetchItem { source: "core_report".to_string(), identifier: "missing".to_string() },
+            BulkFetchItem { source: "unknown".to_string(), identifier: "x".to_string() },
+>>>>>>> origin/rust-migration-7847495834899956704
         ];
 
         let filters = HashMap::new();
@@ -195,10 +231,14 @@ mod tests {
 
         assert_eq!(result.items[1].identifier, "broken_query");
         assert_eq!(result.items[1].error, true);
+<<<<<<< HEAD
         assert_eq!(
             result.items[1].data,
             Some(json!({ "error": "syntax error" }))
         );
+=======
+        assert_eq!(result.items[1].data, Some(json!({ "error": "syntax error" })));
+>>>>>>> origin/rust-migration-7847495834899956704
 
         assert_eq!(result.items[2].identifier, "missing");
         assert_eq!(result.items[2].error, false);

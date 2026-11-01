@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-ruby "~> 4.0.0"
+
 
 source "https://rubygems.org"
 # if there is a super emergency and rubygems is playing up, try
@@ -228,7 +228,7 @@ gem "rqrcode", require: false
 
 gem "rubyzip", require: false
 
-gem "landlock", require: false
+# gem "landlock", require: false, ruby: ">= 3.3"
 
 gem "sshkey", require: false
 

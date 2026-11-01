@@ -35,6 +35,7 @@ impl Browser {
         static SAFARI_RE: OnceLock<Regex> = OnceLock::new();
         static DISCOURSE_RE: OnceLock<Regex> = OnceLock::new();
 
+<<<<<<< HEAD
         if EDGE_RE
             .get_or_init(|| Regex::new(r"(?i)Edg").unwrap())
             .is_match(user_agent)
@@ -99,6 +100,33 @@ impl Browser {
             .get_or_init(|| Regex::new(r"(?i)Discourse").unwrap())
             .is_match(user_agent)
         {
+=======
+        if EDGE_RE.get_or_init(|| Regex::new(r"(?i)Edg").unwrap()).is_match(user_agent) {
+            Browser::Edge
+        } else if OPERA_RE.get_or_init(|| Regex::new(r"(?i)Opera|OPR").unwrap()).is_match(user_agent) {
+            Browser::Opera
+        } else if SAMSUNG_RE.get_or_init(|| Regex::new(r"(?i)SamsungBrowser/").unwrap()).is_match(user_agent) {
+            Browser::SamsungBrowser
+        } else if UC_RE.get_or_init(|| Regex::new(r"(?i)(?:UCBrowser|UC Browser)[/ ]").unwrap()).is_match(user_agent) {
+            Browser::UcBrowser
+        } else if QQ_RE.get_or_init(|| Regex::new(r"(?i)(?:MQQBrowser|QQBrowser)/").unwrap()).is_match(user_agent) {
+            Browser::QqBrowser
+        } else if BAIDU_RE.get_or_init(|| Regex::new(r"(?i)(?:BIDUBrowser|BaiduBrowser)/").unwrap()).is_match(user_agent) {
+            Browser::BaiduBrowser
+        } else if KAIOS_RE.get_or_init(|| Regex::new(r"(?i)KaiOS/").unwrap()).is_match(user_agent) {
+            Browser::KaiosBrowser
+        } else if IE_RE.get_or_init(|| Regex::new(r"(?i)MSIE|Trident|IEMobile").unwrap()).is_match(user_agent) {
+            Browser::Ie
+        } else if FIREFOX_RE.get_or_init(|| Regex::new(r"(?i)Firefox|FxiOS").unwrap()).is_match(user_agent) {
+            Browser::Firefox
+        } else if CHROME_RE.get_or_init(|| Regex::new(r"(?i)Chrome|CriOS").unwrap()).is_match(user_agent) {
+            Browser::Chrome
+        } else if ANDROID_RE.get_or_init(|| Regex::new(r"(?i)Android.+Version/[\d.]+.+Safari").unwrap()).is_match(user_agent) {
+            Browser::AndroidBrowser
+        } else if SAFARI_RE.get_or_init(|| Regex::new(r"(?i)Safari").unwrap()).is_match(user_agent) {
+            Browser::Safari
+        } else if DISCOURSE_RE.get_or_init(|| Regex::new(r"(?i)Discourse").unwrap()).is_match(user_agent) {
+>>>>>>> origin/rust-migration-7847495834899956704
             Browser::Discoursehub
         } else {
             Browser::Unknown
@@ -132,6 +160,7 @@ impl Device {
         static LINUX_RE: OnceLock<Regex> = OnceLock::new();
         static WINDOWS_RE: OnceLock<Regex> = OnceLock::new();
 
+<<<<<<< HEAD
         if ANDROID_RE
             .get_or_init(|| Regex::new(r"(?i)Android").unwrap())
             .is_match(user_agent)
@@ -176,6 +205,25 @@ impl Device {
             .get_or_init(|| Regex::new(r"(?i)Windows").unwrap())
             .is_match(user_agent)
         {
+=======
+        if ANDROID_RE.get_or_init(|| Regex::new(r"(?i)Android").unwrap()).is_match(user_agent) {
+            Device::Android
+        } else if CHROMEBOOK_RE.get_or_init(|| Regex::new(r"(?i)CrOS").unwrap()).is_match(user_agent) {
+            Device::Chromebook
+        } else if IPAD_RE.get_or_init(|| Regex::new(r"(?i)iPad").unwrap()).is_match(user_agent) {
+            Device::Ipad
+        } else if IPHONE_RE.get_or_init(|| Regex::new(r"(?i)iPhone").unwrap()).is_match(user_agent) {
+            Device::Iphone
+        } else if IPOD_RE.get_or_init(|| Regex::new(r"(?i)iPod").unwrap()).is_match(user_agent) {
+            Device::Ipod
+        } else if MOBILE_RE.get_or_init(|| Regex::new(r"(?i)Mobile").unwrap()).is_match(user_agent) {
+            Device::Mobile
+        } else if MAC_RE.get_or_init(|| Regex::new(r"(?i)Macintosh").unwrap()).is_match(user_agent) {
+            Device::Mac
+        } else if LINUX_RE.get_or_init(|| Regex::new(r"(?i)Linux").unwrap()).is_match(user_agent) {
+            Device::Linux
+        } else if WINDOWS_RE.get_or_init(|| Regex::new(r"(?i)Windows").unwrap()).is_match(user_agent) {
+>>>>>>> origin/rust-migration-7847495834899956704
             Device::Windows
         } else {
             Device::Unknown
@@ -203,6 +251,7 @@ impl Os {
         static LINUX_RE: OnceLock<Regex> = OnceLock::new();
         static WINDOWS_RE: OnceLock<Regex> = OnceLock::new();
 
+<<<<<<< HEAD
         if ANDROID_RE
             .get_or_init(|| Regex::new(r"(?i)Android").unwrap())
             .is_match(user_agent)
@@ -232,6 +281,19 @@ impl Os {
             .get_or_init(|| Regex::new(r"(?i)Windows").unwrap())
             .is_match(user_agent)
         {
+=======
+        if ANDROID_RE.get_or_init(|| Regex::new(r"(?i)Android").unwrap()).is_match(user_agent) {
+            Os::Android
+        } else if CHROMEOS_RE.get_or_init(|| Regex::new(r"(?i)CrOS").unwrap()).is_match(user_agent) {
+            Os::Chromeos
+        } else if IOS_RE.get_or_init(|| Regex::new(r"(?i)iPhone|iPad|iPod|Darwin").unwrap()).is_match(user_agent) {
+            Os::Ios
+        } else if MACOS_RE.get_or_init(|| Regex::new(r"(?i)Macintosh").unwrap()).is_match(user_agent) {
+            Os::Macos
+        } else if LINUX_RE.get_or_init(|| Regex::new(r"(?i)Linux").unwrap()).is_match(user_agent) {
+            Os::Linux
+        } else if WINDOWS_RE.get_or_init(|| Regex::new(r"(?i)Windows").unwrap()).is_match(user_agent) {
+>>>>>>> origin/rust-migration-7847495834899956704
             Os::Windows
         } else {
             Os::Unknown
@@ -249,12 +311,16 @@ mod tests {
         assert_eq!(Browser::parse("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36 OPR/86.0.4363.59"), Browser::Opera);
         assert_eq!(Browser::parse("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36"), Browser::Chrome);
         assert_eq!(Browser::parse("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Safari/605.1.15"), Browser::Safari);
+<<<<<<< HEAD
         assert_eq!(
             Browser::parse(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:99.0) Gecko/20100101 Firefox/99.0"
             ),
             Browser::Firefox
         );
+=======
+        assert_eq!(Browser::parse("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:99.0) Gecko/20100101 Firefox/99.0"), Browser::Firefox);
+>>>>>>> origin/rust-migration-7847495834899956704
         assert_eq!(Browser::parse("Unknown User Agent"), Browser::Unknown);
     }
 

@@ -71,11 +71,15 @@ mod tests {
         let ext = ArrayTypeExtension::new(true);
         assert_eq!(
             ext.cast_value("1, 2, 3"),
+<<<<<<< HEAD
             vec![
                 ArrayValue::Integer(1),
                 ArrayValue::Integer(2),
                 ArrayValue::Integer(3)
             ]
+=======
+            vec![ArrayValue::Integer(1), ArrayValue::Integer(2), ArrayValue::Integer(3)]
+>>>>>>> origin/rust-migration-7847495834899956704
         );
         assert_eq!(
             ext.cast_value("a|b|c"),

@@ -2,7 +2,11 @@ use magnus::{method, prelude::*, TryConvert, Error, Value, RClass, RModule, RHas
 
 fn initialize_admin_constraint(rb_self: Value, args: &[Value]) -> Result<Value, Error> {
     let options = args.get(0);
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/rust-migration-7847495834899956704
     let require_master = if let Some(opt) = options {
         if opt.is_kind_of(magnus::class::hash()) {
             let hash = RHash::from_value(*opt).unwrap();
@@ -18,7 +22,11 @@ fn initialize_admin_constraint(rb_self: Value, args: &[Value]) -> Result<Value, 
     } else {
         false
     };
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/rust-migration-7847495834899956704
     rb_self.funcall::<_, _, Value>("instance_variable_set", ("@require_master", require_master))?;
     Ok(rb_self)
 }
@@ -35,12 +43,21 @@ fn matches(rb_self: Value, request: Value) -> Result<bool, Error> {
             return Ok(false);
         }
     }
+<<<<<<< HEAD
     
     let current_user_module = magnus::class::object().const_get::<_, RModule>("CurrentUser")?;
     let env: Value = request.funcall("env", ())?;
     
     let current_user_res: Result<Value, Error> = current_user_module.funcall("lookup_from_env", (env,));
     
+=======
+
+    let current_user_module = magnus::class::object().const_get::<_, RModule>("CurrentUser")?;
+    let env: Value = request.funcall("env", ())?;
+
+    let current_user_res: Result<Value, Error> = current_user_module.funcall("lookup_from_env", (env,));
+
+>>>>>>> origin/rust-migration-7847495834899956704
     match current_user_res {
         Ok(current_user) => {
             if current_user.is_nil() {
@@ -50,7 +67,11 @@ fn matches(rb_self: Value, request: Value) -> Result<bool, Error> {
             if !is_admin {
                 return Ok(false);
             }
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> origin/rust-migration-7847495834899956704
             let custom_check: bool = rb_self.funcall("custom_admin_check", (request,))?;
             Ok(custom_check)
         }

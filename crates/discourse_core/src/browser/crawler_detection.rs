@@ -15,7 +15,11 @@ impl CrawlerDetection {
         let mut escaped: Vec<String> = string
             .split('|')
             .filter(|s| !s.is_empty())
+<<<<<<< HEAD
             .map(regex::escape)
+=======
+            .map(|agent| regex::escape(agent))
+>>>>>>> origin/rust-migration-7847495834899956704
             .collect();
 
         if is_real_and_test {
@@ -23,7 +27,11 @@ impl CrawlerDetection {
         }
 
         if escaped.is_empty() {
+<<<<<<< HEAD
             return Regex::new(r"a^").unwrap();
+=======
+             return Regex::new(r"a^").unwrap();
+>>>>>>> origin/rust-migration-7847495834899956704
         }
 
         let pattern = escaped.join("|");
@@ -38,12 +46,17 @@ impl CrawlerDetection {
         crawler_check_bypass_agents: &str,
         is_test: bool,
     ) -> bool {
+<<<<<<< HEAD
         let ua_contains_wayback = user_agent
             .map(|ua| ua.contains(Self::WAYBACK_MACHINE_URL))
             .unwrap_or(false);
         let via_contains_wayback = via_header
             .map(|via| via.contains(Self::WAYBACK_MACHINE_URL))
             .unwrap_or(false);
+=======
+        let ua_contains_wayback = user_agent.map(|ua| ua.contains(Self::WAYBACK_MACHINE_URL)).unwrap_or(false);
+        let via_contains_wayback = via_header.map(|via| via.contains(Self::WAYBACK_MACHINE_URL)).unwrap_or(false);
+>>>>>>> origin/rust-migration-7847495834899956704
 
         if user_agent.is_none() || ua_contains_wayback || via_contains_wayback {
             return true;
@@ -84,6 +97,7 @@ impl CrawlerDetection {
 
         if !allowed_crawler_user_agents.is_empty() {
             let allowlisted = Self::to_matcher(allowed_crawler_user_agents, false);
+<<<<<<< HEAD
             user_agent
                 .map(|ua| allowlisted.is_match(ua))
                 .unwrap_or(false)
@@ -92,6 +106,12 @@ impl CrawlerDetection {
             user_agent
                 .map(|ua| !blocklisted.is_match(ua))
                 .unwrap_or(true)
+=======
+            user_agent.map(|ua| allowlisted.is_match(ua)).unwrap_or(false)
+        } else {
+            let blocklisted = Self::to_matcher(blocked_crawler_user_agents, false);
+            user_agent.map(|ua| !blocklisted.is_match(ua)).unwrap_or(true)
+>>>>>>> origin/rust-migration-7847495834899956704
         }
     }
 
@@ -112,11 +132,15 @@ impl CrawlerDetection {
             crawler_user_agents,
             crawler_check_bypass_agents,
             is_test,
+<<<<<<< HEAD
         ) && !Self::allow_crawler(
             user_agent,
             allowed_crawler_user_agents,
             blocked_crawler_user_agents,
         )
+=======
+        ) && !Self::allow_crawler(user_agent, allowed_crawler_user_agents, blocked_crawler_user_agents)
+>>>>>>> origin/rust-migration-7847495834899956704
     }
 }
 
@@ -127,10 +151,15 @@ mod tests {
     #[test]
     fn test_to_matcher() {
         let matcher = CrawlerDetection::to_matcher("Googlebot|Bingbot", false);
+<<<<<<< HEAD
         assert!(matcher
             .is_match("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"));
         assert!(matcher
             .is_match("Mozilla/5.0 (compatible; Bingbot/2.0; +http://www.bing.com/bingbot.htm)"));
+=======
+        assert!(matcher.is_match("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"));
+        assert!(matcher.is_match("Mozilla/5.0 (compatible; Bingbot/2.0; +http://www.bing.com/bingbot.htm)"));
+>>>>>>> origin/rust-migration-7847495834899956704
         assert!(!matcher.is_match("Mozilla/5.0 (Windows NT 10.0; Win64; x64)"));
 
         let empty_matcher = CrawlerDetection::to_matcher("", false);
@@ -139,6 +168,7 @@ mod tests {
 
     #[test]
     fn test_is_crawler() {
+<<<<<<< HEAD
         assert!(CrawlerDetection::is_crawler(
             Some("archive.org_bot"),
             None,
@@ -147,6 +177,9 @@ mod tests {
             "",
             false
         ));
+=======
+        assert!(CrawlerDetection::is_crawler(Some("archive.org_bot"), None, "", "", "", false));
+>>>>>>> origin/rust-migration-7847495834899956704
         assert!(CrawlerDetection::is_crawler(None, None, "", "", "", false));
     }
 }

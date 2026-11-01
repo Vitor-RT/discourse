@@ -1,9 +1,18 @@
+<<<<<<< HEAD
 use crate::autospec::base_runner::BaseRunner;
 use crate::autospec::simple_runner::SimpleRunner;
 use notify::{RecursiveMode, Result as NotifyResult, Watcher};
 use std::collections::HashMap;
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
+=======
+use crate::autospec::simple_runner::SimpleRunner;
+use std::sync::{Arc, Condvar, Mutex};
+use std::collections::HashMap;
+use std::thread;
+use crate::autospec::base_runner::BaseRunner;
+use notify::{Watcher, RecursiveMode, Result as NotifyResult};
+>>>>>>> origin/rust-migration-7847495834899956704
 
 pub struct Manager {
     pub debug: bool,
@@ -41,6 +50,7 @@ impl Manager {
         let signal_clone = Arc::clone(&self.signal);
         let abort_runner = Arc::clone(&self.simple_runner);
         thread::spawn(move || {
+<<<<<<< HEAD
             let mut watcher =
                 notify::recommended_watcher(move |res: NotifyResult<notify::Event>| {
                     match res {
@@ -70,6 +80,35 @@ impl Manager {
                     }
                 })
                 .unwrap();
+=======
+            let mut watcher = notify::recommended_watcher(move |res: NotifyResult<notify::Event>| {
+                match res {
+                    Ok(event) => {
+                        let mut changes = Vec::new();
+                        for path in event.paths {
+                            if let Some(p) = path.to_str() {
+                                // Ignore lib/autospec explicitly as in ruby version
+                                if p.contains("lib/autospec") {
+                                    continue;
+                                }
+                                changes.push((p.to_string(), p.to_string()));
+                            }
+                        }
+
+                        if !changes.is_empty() {
+                            abort_runner.lock().unwrap().abort();
+                            let mut q = queue_clone.lock().unwrap();
+                            for (file, spec) in changes {
+                                q.retain(|(_, s)| !s.trim().starts_with(spec.trim()));
+                                q.insert(0, (file, spec));
+                            }
+                            signal_clone.notify_all();
+                        }
+                    },
+                    Err(e) => println!("watch error: {:?}", e),
+                }
+            }).unwrap();
+>>>>>>> origin/rust-migration-7847495834899956704
 
             // Watch relevant directories just like original code
             let dirs = vec!["spec", "lib", "app", "config", "test", "vendor", "plugins"];
@@ -116,6 +155,7 @@ impl Manager {
         let runner = Arc::clone(&self.simple_runner);
         let auto_run_all = self.auto_run_all;
 
+<<<<<<< HEAD
         thread::spawn(move || loop {
             let mut current: Option<(String, String)> = None;
             {
@@ -173,6 +213,67 @@ impl Manager {
             let mut guard = queue.lock().unwrap();
             if guard.is_empty() || last_failed {
                 guard = signal.wait(guard).unwrap();
+=======
+        thread::spawn(move || {
+            loop {
+                let mut current: Option<(String, String)> = None;
+                {
+                    let q = queue.lock().unwrap();
+                    if let Some(c) = q.first() {
+                        current = Some(c.clone());
+                    }
+                }
+
+                let mut last_failed = false;
+                if let Some(c) = current {
+                    last_failed = {
+                        let result = {
+                            let r = runner.lock().unwrap();
+                            r.run(&c.1)
+                        };
+
+                        if result == 0 {
+                            let mut q = queue.lock().unwrap();
+                            if !q.is_empty() {
+                                q.remove(0);
+                            }
+                            false
+                        } else {
+                            true
+                        }
+                    };
+
+                    if last_failed {
+                        let mut q = queue.lock().unwrap();
+                        if let Some(first) = q.first() {
+                            if first.0 == "focus" {
+                                q.remove(0);
+                            }
+                        }
+
+                        let failed_specs = {
+                            let r = runner.lock().unwrap();
+                            r.failed_specs()
+                        };
+
+                        let specs_to_focus = failed_specs.into_iter().take(11).collect::<Vec<_>>();
+
+                        if !specs_to_focus.is_empty() {
+                            q.insert(0, ("focus".to_string(), specs_to_focus.join(" ")));
+                        }
+
+                        if auto_run_all {
+                            q.retain(|(_, s)| s != "spec");
+                            q.push(("spec".to_string(), "spec".to_string()));
+                        }
+                    }
+                }
+
+                let mut guard = queue.lock().unwrap();
+                if guard.is_empty() || last_failed {
+                    guard = signal.wait(guard).unwrap();
+                }
+>>>>>>> origin/rust-migration-7847495834899956704
             }
         });
     }
@@ -193,7 +294,12 @@ impl Manager {
         // Covered in run via thread
     }
 
+<<<<<<< HEAD
     pub fn process_change(&mut self, _files: Vec<(String, Option<usize>)>) {}
+=======
+    pub fn process_change(&mut self, _files: Vec<(String, Option<usize>)>) {
+    }
+>>>>>>> origin/rust-migration-7847495834899956704
 
     pub fn queue_specs(&mut self, specs: Vec<(String, String)>) {
         if specs.is_empty() {
@@ -215,10 +321,17 @@ impl Manager {
                     q.remove(0);
                     q.insert(0, (file.clone(), spec.clone()));
 
+<<<<<<< HEAD
                     if (!spec.contains(':') || !focus.1.contains(spec.split(':').next().unwrap()))
                         && (focus.1.contains(&spec) || file != spec)
                     {
                         q.insert(0, focus.clone());
+=======
+                    if !spec.contains(':') || !focus.1.contains(spec.split(':').next().unwrap()) {
+                        if focus.1.contains(&spec) || file != spec {
+                            q.insert(0, focus.clone());
+                        }
+>>>>>>> origin/rust-migration-7847495834899956704
                     }
                 } else {
                     q.insert(0, (file.clone(), spec.clone()));
@@ -260,8 +373,12 @@ impl Manager {
                     println!("{}", s);
                 }
                 println!();
+<<<<<<< HEAD
                 let new_specs: Vec<(String, String)> =
                     specs.into_iter().map(|s| (s.clone(), s)).collect();
+=======
+                let new_specs: Vec<(String, String)> = specs.into_iter().map(|s| (s.clone(), s)).collect();
+>>>>>>> origin/rust-migration-7847495834899956704
                 self.queue_specs(new_specs);
             }
         }

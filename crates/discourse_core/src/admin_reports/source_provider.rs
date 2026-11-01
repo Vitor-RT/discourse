@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 use crate::admin_reports::resolved_report::ResolvedReport;
 use std::collections::{HashMap, HashSet};
+=======
+use std::collections::{HashMap, HashSet};
+use crate::admin_reports::resolved_report::ResolvedReport;
+>>>>>>> origin/rust-migration-7847495834899956704
 
 pub trait SourceProvider {
     fn source_name(&self) -> String;
@@ -9,6 +14,7 @@ pub trait SourceProvider {
     // For now we'll pass a dummy `&Guardian` but we don't have Guardian in Rust yet.
     // Wait, let me just check how they are used.
 
+<<<<<<< HEAD
     fn resolve_many(
         &self,
         identifiers: &[String],
@@ -29,11 +35,19 @@ pub trait SourceProvider {
         _filters: &HashMap<String, String>,
     ) {
     }
+=======
+    fn resolve_many(&self, identifiers: &[String], guardian: &dyn std::any::Any) -> HashMap<String, ResolvedReport>;
+
+    fn fetch_many(&self, identifiers: &[String], guardian: &dyn std::any::Any, filters: &HashMap<String, String>) -> HashMap<String, serde_json::Value>;
+
+    fn prewarm(&self, _identifiers: &[String], _guardian: &dyn std::any::Any, _filters: &HashMap<String, String>) {}
+>>>>>>> origin/rust-migration-7847495834899956704
 
     fn list_all(
         &self,
         search: Option<&str>,
         after: Option<&HashMap<String, String>>,
+<<<<<<< HEAD
         limit: Option<usize>,
     ) -> Vec<ResolvedReport>;
 
@@ -46,5 +60,12 @@ pub trait SourceProvider {
             .keys()
             .cloned()
             .collect()
+=======
+        limit: Option<usize>
+    ) -> Vec<ResolvedReport>;
+
+    fn accessible_ids(&self, identifiers: &[String], guardian: &dyn std::any::Any) -> HashSet<String> {
+        self.resolve_many(identifiers, guardian).keys().cloned().collect()
+>>>>>>> origin/rust-migration-7847495834899956704
     }
 }

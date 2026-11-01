@@ -21,7 +21,11 @@ fn create_confirmation(rb_self: Value) -> Result<(), Error> {
     redis.funcall::<_, _, Value>("setex", (key1, hours_3, token.clone()))?;
 
     let performed_by_id: i64 = performed_by.funcall("id", ())?;
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/rust-migration-7847495834899956704
     let hash = magnus::RHash::new();
     hash.aset(magnus::Symbol::new("target_user_id"), target_user_id)?;
     hash.aset(magnus::Symbol::new("performed_by"), performed_by_id)?;
@@ -62,6 +66,7 @@ fn email_confirmed(rb_self: Value) -> Result<(), Error> {
 
     let token: String = rb_self.funcall("token", ())?;
     let target_user_id: i64 = target_user.funcall("id", ())?;
+<<<<<<< HEAD
     
     let discourse = magnus::class::object().const_get::<_, RModule>("Discourse")?;
     let redis: Value = discourse.funcall("redis", ())?;
@@ -69,6 +74,15 @@ fn email_confirmed(rb_self: Value) -> Result<(), Error> {
     let key1 = format!("admin-confirmation:{}", target_user_id);
     redis.funcall::<_, _, Value>("del", (key1,))?;
     
+=======
+
+    let discourse = magnus::class::object().const_get::<_, RModule>("Discourse")?;
+    let redis: Value = discourse.funcall("redis", ())?;
+
+    let key1 = format!("admin-confirmation:{}", target_user_id);
+    redis.funcall::<_, _, Value>("del", (key1,))?;
+
+>>>>>>> origin/rust-migration-7847495834899956704
     let key2 = format!("admin-confirmation-token:{}", token);
     redis.funcall::<_, _, Value>("del", (key2,))?;
 
@@ -78,7 +92,11 @@ fn email_confirmed(rb_self: Value) -> Result<(), Error> {
 fn exists_for(_class: Value, user_id: Value) -> Result<bool, Error> {
     let discourse = magnus::class::object().const_get::<_, RModule>("Discourse")?;
     let redis: Value = discourse.funcall("redis", ())?;
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/rust-migration-7847495834899956704
     let user_id_i64: i64 = user_id.funcall("to_i", ())?;
     let key = format!("admin-confirmation:{}", user_id_i64);
     let exists: bool = redis.funcall("exists?", (key,))?;
@@ -90,11 +108,16 @@ fn find_by_code(class: Value, token: String) -> Result<Value, Error> {
     let redis: Value = discourse.funcall("redis", ())?;
     let key = format!("admin-confirmation-token:{}", token);
     let json_val: Value = redis.funcall("get", (key,))?;
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/rust-migration-7847495834899956704
     if json_val.is_nil() {
         let nil_val: Value = magnus::eval("nil").unwrap();
         return Ok(nil_val);
     }
+<<<<<<< HEAD
     
     let json_str: String = json_val.funcall("to_s", ())?;
     let json_module = magnus::class::object().const_get::<_, RModule>("JSON")?;
@@ -113,6 +136,26 @@ fn find_by_code(class: Value, token: String) -> Result<Value, Error> {
     let ac: Value = class.funcall("new", (target_user, performed_by))?;
     ac.funcall::<_, _, Value>("token=", (token,))?;
     
+=======
+
+    let json_str: String = json_val.funcall("to_s", ())?;
+    let json_module = magnus::class::object().const_get::<_, RModule>("JSON")?;
+    let parsed: magnus::RHash = json_module.funcall("parse", (json_str,))?;
+
+    let target_user_id_val: Value = parsed.get("target_user_id").unwrap();
+    let target_user_id: i64 = target_user_id_val.funcall("to_i", ())?;
+
+    let performed_by_id_val: Value = parsed.get("performed_by").unwrap();
+    let performed_by_id: i64 = performed_by_id_val.funcall("to_i", ())?;
+
+    let user_class = magnus::class::object().const_get::<_, RClass>("User")?;
+    let target_user: Value = user_class.funcall("find", (target_user_id,))?;
+    let performed_by: Value = user_class.funcall("find", (performed_by_id,))?;
+
+    let ac: Value = class.funcall("new", (target_user, performed_by))?;
+    ac.funcall::<_, _, Value>("token=", (token,))?;
+
+>>>>>>> origin/rust-migration-7847495834899956704
     Ok(ac)
 }
 
@@ -120,10 +163,18 @@ pub fn init() -> Result<(), Error> {
     let class = magnus::class::object().const_get::<_, RClass>("AdminConfirmation")?;
     class.define_method("create_confirmation", method!(create_confirmation, 0))?;
     class.define_method("email_confirmed!", method!(email_confirmed, 0))?;
+<<<<<<< HEAD
     
     let singleton = class.singleton_class()?;
     singleton.define_method("exists_for?", method!(exists_for, 1))?;
     singleton.define_method("find_by_code", method!(find_by_code, 1))?;
     
+=======
+
+    let singleton = class.singleton_class()?;
+    singleton.define_method("exists_for?", method!(exists_for, 1))?;
+    singleton.define_method("find_by_code", method!(find_by_code, 1))?;
+
+>>>>>>> origin/rust-migration-7847495834899956704
     Ok(())
 }

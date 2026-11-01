@@ -1,11 +1,14 @@
 pub struct SymbolTypeExtension;
 
+<<<<<<< HEAD
 impl Default for SymbolTypeExtension {
     fn default() -> Self {
         Self::new()
     }
 }
 
+=======
+>>>>>>> origin/rust-migration-7847495834899956704
 impl SymbolTypeExtension {
     pub fn new() -> Self {
         Self

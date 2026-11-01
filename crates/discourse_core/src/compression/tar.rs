@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 use super::strategy::{CompressionError, Strategy};
 use std::fs::File;
 use std::path::Path;
 use tar::{Archive, Builder};
+=======
+use std::fs::File;
+use std::path::{Path, PathBuf};
+use tar::{Archive, Builder};
+use super::strategy::{Strategy, CompressionError};
+>>>>>>> origin/rust-migration-7847495834899956704
 
 pub struct Tar;
 
@@ -24,10 +31,14 @@ impl Strategy for Tar {
 
         let tar_filename = format!("{}.tar", target_name);
         // Replace invalid chars as per FileHelper.sanitize_filename in ruby
+<<<<<<< HEAD
         let tar_filename = tar_filename.replace(
             |c: char| !c.is_alphanumeric() && c != '.' && c != '-' && c != '_',
             "_",
         );
+=======
+        let tar_filename = tar_filename.replace(|c: char| !c.is_alphanumeric() && c != '.' && c != '-' && c != '_', "_");
+>>>>>>> origin/rust-migration-7847495834899956704
 
         let target_path = path.join(&tar_filename);
 
@@ -46,12 +57,16 @@ impl Strategy for Tar {
         Ok(target_path.to_string_lossy().to_string())
     }
 
+<<<<<<< HEAD
     fn decompress(
         &self,
         dest_path: &Path,
         compressed_file_path: &Path,
         _max_size: u64,
     ) -> Result<String, CompressionError> {
+=======
+    fn decompress(&self, dest_path: &Path, compressed_file_path: &Path, max_size: u64) -> Result<String, CompressionError> {
+>>>>>>> origin/rust-migration-7847495834899956704
         let file = File::open(compressed_file_path)?;
         let mut archive = Archive::new(file);
 
@@ -69,9 +84,15 @@ impl Strategy for Tar {
             if let Some(parent) = target_path.parent() {
                 std::fs::create_dir_all(parent)?;
                 if let Ok(canon_parent) = parent.canonicalize() {
+<<<<<<< HEAD
                     if canon_parent.starts_with(&canonical_dest) {
                         safe_to_extract = true;
                     }
+=======
+                     if canon_parent.starts_with(&canonical_dest) {
+                         safe_to_extract = true;
+                     }
+>>>>>>> origin/rust-migration-7847495834899956704
                 }
             }
 

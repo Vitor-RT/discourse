@@ -161,6 +161,7 @@ mod tests {
 
     fn setup_acl() -> Target {
         Target::new(vec![
+<<<<<<< HEAD
             TargetAclItem {
                 acl_type: "group".to_string(),
                 id: 1,
@@ -203,6 +204,14 @@ mod tests {
                 target_type: "Category".to_string(),
                 target_id: 5,
             },
+=======
+            TargetAclItem { acl_type: "group".to_string(), id: 1, permission: "view".to_string(), target_type: "Category".to_string(), target_id: 5 },
+            TargetAclItem { acl_type: "group".to_string(), id: 1, permission: "edit".to_string(), target_type: "Category".to_string(), target_id: 5 },
+            TargetAclItem { acl_type: "group".to_string(), id: 22, permission: "view".to_string(), target_type: "Category".to_string(), target_id: 5 },
+            TargetAclItem { acl_type: "user".to_string(), id: 2, permission: "manage".to_string(), target_type: "Category".to_string(), target_id: 5 },
+            TargetAclItem { acl_type: "user".to_string(), id: 99, permission: "view".to_string(), target_type: "Category".to_string(), target_id: 5 },
+            TargetAclItem { acl_type: "user".to_string(), id: 3, permission: "owner".to_string(), target_type: "Category".to_string(), target_id: 5 },
+>>>>>>> origin/rust-migration-7847495834899956704
         ])
     }
 
@@ -239,6 +248,7 @@ mod tests {
     #[test]
     fn test_group_ids_with_any_permission() {
         let acl = setup_acl();
+<<<<<<< HEAD
         assert_eq!(
             acl.group_ids_with_any_permission(&["view", "edit"]),
             vec![1, 22]
@@ -247,6 +257,10 @@ mod tests {
             acl.group_ids_with_any_permission(&["view", "own"]),
             vec![1, 22]
         );
+=======
+        assert_eq!(acl.group_ids_with_any_permission(&["view", "edit"]), vec![1, 22]);
+        assert_eq!(acl.group_ids_with_any_permission(&["view", "own"]), vec![1, 22]);
+>>>>>>> origin/rust-migration-7847495834899956704
     }
 
     #[test]
@@ -286,6 +300,7 @@ mod tests {
     #[test]
     fn test_user_ids_with_any_permission() {
         let acl = setup_acl();
+<<<<<<< HEAD
         assert_eq!(
             acl.user_ids_with_any_permission(&["view", "manage"]),
             vec![2, 3, 99]
@@ -294,5 +309,9 @@ mod tests {
             acl.user_ids_with_any_permission(&["view", "own"]),
             vec![3, 99]
         );
+=======
+        assert_eq!(acl.user_ids_with_any_permission(&["view", "manage"]), vec![2, 3, 99]);
+        assert_eq!(acl.user_ids_with_any_permission(&["view", "own"]), vec![3, 99]);
+>>>>>>> origin/rust-migration-7847495834899956704
     }
 }

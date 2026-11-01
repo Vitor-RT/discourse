@@ -1,11 +1,20 @@
 use crate::autospec::base_runner::BaseRunner;
+<<<<<<< HEAD
 use crate::autospec::formatter::Formatter;
 use crate::autospec::rspec_runner::RspecRunner;
 use std::env;
+=======
+use crate::autospec::rspec_runner::RspecRunner;
+use crate::autospec::formatter::Formatter;
+>>>>>>> origin/rust-migration-7847495834899956704
 use std::process::{Child, Command};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
+<<<<<<< HEAD
+=======
+use std::env;
+>>>>>>> origin/rust-migration-7847495834899956704
 
 pub struct SimpleRunner {
     pub rspec_runner: RspecRunner,
@@ -41,20 +50,28 @@ impl BaseRunner for SimpleRunner {
         self.abort();
 
         let formatter_path = Formatter::setup_ruby_formatter();
+<<<<<<< HEAD
         let args = vec![
             "-r".to_string(),
             formatter_path,
             "-f".to_string(),
             "Autospec::Formatter".to_string(),
         ];
+=======
+        let args = vec!["-r".to_string(), formatter_path, "-f".to_string(), "Autospec::Formatter".to_string()];
+>>>>>>> origin/rust-migration-7847495834899956704
 
         let line_specified = specs.split_whitespace().any(|s| s.contains(':'));
         let multiple_files = specs.split_whitespace().count() > 1 || specs == "spec";
 
+<<<<<<< HEAD
         let command_str = if env::var("PARALLEL_SPEC").unwrap_or_default() == "1"
             && multiple_files
             && !line_specified
         {
+=======
+        let command_str = if env::var("PARALLEL_SPEC").unwrap_or_default() == "1" && multiple_files && !line_specified {
+>>>>>>> origin/rust-migration-7847495834899956704
             "bin/turbo_rspec"
         } else {
             "bin/rspec"
@@ -69,10 +86,14 @@ impl BaseRunner for SimpleRunner {
         }
 
         cmd.env("RAILS_ENV", "test");
+<<<<<<< HEAD
         if specs
             .split_whitespace()
             .any(|s| s.starts_with("plugins") || s.starts_with("./plugins"))
         {
+=======
+        if specs.split_whitespace().any(|s| s.starts_with("plugins") || s.starts_with("./plugins")) {
+>>>>>>> origin/rust-migration-7847495834899956704
             cmd.env("LOAD_PLUGINS", "1");
             println!("Loading plugins while running specs");
         }

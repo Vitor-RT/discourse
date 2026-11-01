@@ -15,6 +15,7 @@ impl Registry {
     }
 
     pub fn provider_for(&self, source_name: &str) -> Option<&Box<dyn SourceProvider>> {
+<<<<<<< HEAD
         self.providers
             .iter()
             .find(|p| p.source_name() == source_name)
@@ -26,6 +27,12 @@ impl Registry {
         source_fn: impl Fn(&T) -> String,
         mut handler: F,
     ) -> HashMap<String, R>
+=======
+        self.providers.iter().find(|p| p.source_name() == source_name)
+    }
+
+    pub fn dispatch_per_source<T, F, R>(&self, items: &[T], source_fn: impl Fn(&T) -> String, mut handler: F) -> HashMap<String, R>
+>>>>>>> origin/rust-migration-7847495834899956704
     where
         F: FnMut(&Box<dyn SourceProvider>, &[&T]) -> R,
     {
@@ -57,6 +64,7 @@ mod tests {
         fn source_name(&self) -> String {
             self.name.clone()
         }
+<<<<<<< HEAD
         fn label(&self) -> Option<String> {
             None
         }
@@ -83,13 +91,23 @@ mod tests {
         ) -> Vec<ResolvedReport> {
             vec![]
         }
+=======
+        fn label(&self) -> Option<String> { None }
+        fn resolve_many(&self, _ids: &[String], _guardian: &dyn std::any::Any) -> HashMap<String, ResolvedReport> { HashMap::new() }
+        fn fetch_many(&self, _ids: &[String], _guardian: &dyn std::any::Any, _filters: &HashMap<String, String>) -> HashMap<String, serde_json::Value> { HashMap::new() }
+        fn list_all(&self, _search: Option<&str>, _after: Option<&HashMap<String, String>>, _limit: Option<usize>) -> Vec<ResolvedReport> { vec![] }
+>>>>>>> origin/rust-migration-7847495834899956704
     }
 
     #[test]
     fn test_provider_for() {
+<<<<<<< HEAD
         let registry = Registry::new(vec![Box::new(DummyProvider {
             name: "test_source".to_string(),
         })]);
+=======
+        let registry = Registry::new(vec![Box::new(DummyProvider { name: "test_source".to_string() })]);
+>>>>>>> origin/rust-migration-7847495834899956704
         assert!(registry.provider_for("test_source").is_some());
         assert!(registry.provider_for("unknown").is_none());
     }
@@ -97,12 +115,17 @@ mod tests {
     #[test]
     fn test_dispatch_per_source() {
         let registry = Registry::new(vec![
+<<<<<<< HEAD
             Box::new(DummyProvider {
                 name: "source1".to_string(),
             }),
             Box::new(DummyProvider {
                 name: "source2".to_string(),
             }),
+=======
+            Box::new(DummyProvider { name: "source1".to_string() }),
+            Box::new(DummyProvider { name: "source2".to_string() }),
+>>>>>>> origin/rust-migration-7847495834899956704
         ]);
 
         let items = vec![
@@ -115,7 +138,13 @@ mod tests {
         let result = registry.dispatch_per_source(
             &items,
             |item| item.0.clone(),
+<<<<<<< HEAD
             |provider, group| format!("{}:{}", provider.source_name(), group.len()),
+=======
+            |provider, group| {
+                format!("{}:{}", provider.source_name(), group.len())
+            },
+>>>>>>> origin/rust-migration-7847495834899956704
         );
 
         assert_eq!(result.get("source1").unwrap(), "source1:2");

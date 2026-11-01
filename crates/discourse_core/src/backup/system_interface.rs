@@ -66,6 +66,7 @@ impl<'a> SystemInterface<'a> {
         let max_wait_seconds = 60;
         let wait_seconds = 6;
 
+<<<<<<< HEAD
         self.logger.log(
             &format!(
                 "Waiting up to {} seconds for Sidekiq to finish running jobs...",
@@ -73,6 +74,9 @@ impl<'a> SystemInterface<'a> {
             ),
             None,
         );
+=======
+        self.logger.log(&format!("Waiting up to {} seconds for Sidekiq to finish running jobs...", max_wait_seconds), None);
+>>>>>>> origin/rust-migration-7847495834899956704
 
         let max_iterations = max_wait_seconds / wait_seconds;
         let mut iterations = 1;
@@ -85,6 +89,7 @@ impl<'a> SystemInterface<'a> {
 
             iterations += 1;
             if iterations > max_iterations {
+<<<<<<< HEAD
                 return Err(
                     "Sidekiq did not finish running all the jobs in the allowed time!".into(),
                 );
@@ -97,6 +102,12 @@ impl<'a> SystemInterface<'a> {
                 ),
                 None,
             );
+=======
+                return Err("Sidekiq did not finish running all the jobs in the allowed time!".into());
+            }
+
+            self.logger.log(&format!("Waiting for sidekiq to finish running jobs... #{}", iterations), None);
+>>>>>>> origin/rust-migration-7847495834899956704
         }
 
         Ok(())

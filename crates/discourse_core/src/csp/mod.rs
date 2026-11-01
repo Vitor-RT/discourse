@@ -28,14 +28,16 @@ impl ContentSecurityPolicy {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::csp::default::{CspSettings, DefaultPolicy};
     use crate::csp::builder::Builder;
+    use crate::csp::default::{CspSettings, DefaultPolicy};
 
     fn parse_policy(policy: &str) -> Directives {
         let mut parsed = Directives::new();
         for part in policy.split(';') {
             let part = part.trim();
-            if part.is_empty() { continue; }
+            if part.is_empty() {
+                continue;
+            }
             let mut iter = part.split_whitespace();
             if let Some(directive) = iter.next() {
                 let sources: Vec<String> = iter.map(|s| s.to_string()).collect();
@@ -62,7 +64,10 @@ mod tests {
     fn test_object_src_is_none() {
         let policy = generate_policy(CspSettings::default());
         let parsed = parse_policy(&policy);
-        assert_eq!(parsed.get("object-src").unwrap(), &vec!["'none'".to_string()]);
+        assert_eq!(
+            parsed.get("object-src").unwrap(),
+            &vec!["'none'".to_string()]
+        );
     }
 
     #[test]
@@ -70,15 +75,21 @@ mod tests {
         let mut settings = CspSettings::default();
         settings.force_https = false;
         let policy = generate_policy(settings.clone());
-        assert!(parse_policy(&policy).get("upgrade-insecure-requests").is_none());
+        assert!(parse_policy(&policy)
+            .get("upgrade-insecure-requests")
+            .is_none());
 
         settings.force_https = true;
         let policy = generate_policy(settings.clone());
-        assert!(parse_policy(&policy).get("upgrade-insecure-requests").is_some());
+        assert!(parse_policy(&policy)
+            .get("upgrade-insecure-requests")
+            .is_some());
 
         settings.report_only = true;
         let policy = generate_policy(settings.clone());
-        assert!(parse_policy(&policy).get("upgrade-insecure-requests").is_none());
+        assert!(parse_policy(&policy)
+            .get("upgrade-insecure-requests")
+            .is_none());
     }
 
     #[test]
@@ -100,11 +111,14 @@ mod tests {
         let policy = generate_policy(settings);
         let parsed = parse_policy(&policy);
         let worker_src = parsed.get("worker-src").unwrap();
-        assert_eq!(worker_src, &vec![
-            "'self'".to_string(),
-            "blob:".to_string(),
-            "https://cdn.example.com/assets/".to_string()
-        ]);
+        assert_eq!(
+            worker_src,
+            &vec![
+                "'self'".to_string(),
+                "blob:".to_string(),
+                "https://cdn.example.com/assets/".to_string()
+            ]
+        );
     }
 
     #[test]
@@ -115,18 +129,24 @@ mod tests {
         let policy = generate_policy(settings);
         let parsed = parse_policy(&policy);
         let worker_src = parsed.get("worker-src").unwrap();
-        assert_eq!(worker_src, &vec![
-            "'self'".to_string(),
-            "blob:".to_string(),
-            "https://s3cdn.example.com/assets/".to_string()
-        ]);
+        assert_eq!(
+            worker_src,
+            &vec![
+                "'self'".to_string(),
+                "blob:".to_string(),
+                "https://s3cdn.example.com/assets/".to_string()
+            ]
+        );
     }
 
     #[test]
     fn test_manifest_src() {
         let policy = generate_policy(CspSettings::default());
         let parsed = parse_policy(&policy);
-        assert_eq!(parsed.get("manifest-src").unwrap(), &vec!["'self'".to_string()]);
+        assert_eq!(
+            parsed.get("manifest-src").unwrap(),
+            &vec!["'self'".to_string()]
+        );
     }
 
     #[test]
@@ -136,13 +156,22 @@ mod tests {
         let policy = generate_policy(settings.clone());
         let parsed = parse_policy(&policy);
         assert!(parsed.get("report-uri").is_none());
-        assert!(!parsed.get("script-src").unwrap().contains(&"'report-sample'".to_string()));
+        assert!(!parsed
+            .get("script-src")
+            .unwrap()
+            .contains(&"'report-sample'".to_string()));
 
         settings.report_uri = Some("https://csp.example.com/report".to_string());
         let policy = generate_policy(settings.clone());
         let parsed = parse_policy(&policy);
-        assert_eq!(parsed.get("report-uri").unwrap(), &vec!["https://csp.example.com/report".to_string()]);
-        assert!(parsed.get("script-src").unwrap().contains(&"'report-sample'".to_string()));
+        assert_eq!(
+            parsed.get("report-uri").unwrap(),
+            &vec!["https://csp.example.com/report".to_string()]
+        );
+        assert!(parsed
+            .get("script-src")
+            .unwrap()
+            .contains(&"'report-sample'".to_string()));
     }
 
     #[test]
@@ -178,6 +207,9 @@ mod tests {
 
         let policy = builder.build();
         let parsed = parse_policy(&policy);
-        assert!(parsed.get("script-src").unwrap().contains(&"'unsafe-eval'".to_string()));
+        assert!(parsed
+            .get("script-src")
+            .unwrap()
+            .contains(&"'unsafe-eval'".to_string()));
     }
 }

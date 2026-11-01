@@ -86,11 +86,9 @@ impl<'a> Section<'a> {
         let mut survivors: Vec<(AdminDashboardReportModel, ResolvedReport)> = records
             .into_iter()
             .filter_map(|record| {
-                if let Some(obj) = resolved_by_record_id.get(&record.id) {
-                    Some((record, obj.clone()))
-                } else {
-                    None
-                }
+                resolved_by_record_id
+                    .get(&record.id)
+                    .map(|obj| (record, obj.clone()))
             })
             .take(self.visible_cap)
             .collect();

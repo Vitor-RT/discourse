@@ -11,6 +11,7 @@ pub mod demons;
 pub mod logging;
 pub mod onebox;
 pub mod pretty_text;
+pub mod reviewable;
 pub mod svg_sprite;
 pub mod text_utils;
 pub mod types;

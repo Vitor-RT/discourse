@@ -1,5 +1,11 @@
 pub struct SymbolTypeExtension;
 
+impl Default for SymbolTypeExtension {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SymbolTypeExtension {
     pub fn new() -> Self {
         Self

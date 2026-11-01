@@ -90,7 +90,7 @@ impl<'a> ONPDiff<'a> {
             p += 1;
 
             let mut k = -p;
-            while k <= self.delta - 1 {
+            while k < self.delta {
                 fp[(k + self.offset as isize) as usize] = self.snake(
                     k,
                     fp[(k - 1 + self.offset as isize) as usize] + 1,
@@ -100,7 +100,7 @@ impl<'a> ONPDiff<'a> {
             }
 
             k = self.delta + p;
-            while k >= self.delta + 1 {
+            while k > self.delta {
                 fp[(k + self.offset as isize) as usize] = self.snake(
                     k,
                     fp[(k - 1 + self.offset as isize) as usize] + 1,

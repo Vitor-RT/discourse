@@ -215,10 +215,10 @@ impl Manager {
                     q.remove(0);
                     q.insert(0, (file.clone(), spec.clone()));
 
-                    if !spec.contains(':') || !focus.1.contains(spec.split(':').next().unwrap()) {
-                        if focus.1.contains(&spec) || file != spec {
-                            q.insert(0, focus.clone());
-                        }
+                    if (!spec.contains(':') || !focus.1.contains(spec.split(':').next().unwrap()))
+                        && (focus.1.contains(&spec) || file != spec)
+                    {
+                        q.insert(0, focus.clone());
                     }
                 } else {
                     q.insert(0, (file.clone(), spec.clone()));

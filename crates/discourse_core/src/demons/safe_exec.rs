@@ -47,12 +47,12 @@ impl SafeExec {
         if !success_status_codes.contains(&status) {
             let mut message = command.join(" ");
             if !failure_message.is_empty() {
-                message.push_str("\n");
+                message.push('\n');
                 message.push_str(failure_message);
             }
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             if !stderr.is_empty() {
-                message.push_str("\n");
+                message.push('\n');
                 message.push_str(&stderr);
             }
 

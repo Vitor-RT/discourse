@@ -67,7 +67,7 @@ impl<'a> Listing<'a> {
         };
 
         let cursor_out = if has_more {
-            page.last().map(|report| Listing::cursor_for(report))
+            page.last().map(Listing::cursor_for)
         } else {
             None
         };

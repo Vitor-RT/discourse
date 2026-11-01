@@ -67,26 +67,10 @@ impl Builder {
             .collect();
 
         if directive == "script-src" || directive == "worker-src" {
-            // Ruby logic: reject { |s| s == "'unsafe-inline'" || s == "'self'" || !s.start_with?("'") }
-            // So keep if: s != "'unsafe-inline'" && s != "'self'" && s.starts_with("'")
-            // Wait, but a URL source like "https://example.com" does NOT start with "'".
-            // Let's re-read the ruby strictly:
-            // sources = sources.reject { |s| s == "'unsafe-inline'" || s == "'self'" || !s.start_with?("'") }
-            // Wait, this actually means it keeps ONLY things that DO start with "'" (but not unsafe-inline or self).
-            // Actually, wait, it strips them because "strict-dynamic" ignores them in CSP3 anyway.
-            // But if we want to allow URLs for backwards compat?
-            // Actually, in CSP3 strict-dynamic, ALL allow-list sources (URLs) are ignored.
-            // Oh, so it really does strip all URLs and only keeps other single-quote keywords like "'wasm-unsafe-eval'" or "'report-sample'" ?
-            // Let's implement EXACTLY the ruby reject logic:
-            // reject if `s == "'unsafe-inline'" || s == "'self'" || !s.starts_with("'")`
-            // that is the same as retaining if `s != "'unsafe-inline'" && s != "'self'" && s.starts_with("'")`
             sources.retain(|s| s != "'unsafe-inline'" && s != "'self'" && s.starts_with('\''));
         }
 
-        let entry = self
-            .directives
-            .entry(directive.clone())
-            .or_insert_with(Vec::new);
+        let entry = self.directives.entry(directive.clone()).or_default();
 
         for source in sources {
             if source.contains(';') || source.chars().any(|c| c.is_whitespace()) {

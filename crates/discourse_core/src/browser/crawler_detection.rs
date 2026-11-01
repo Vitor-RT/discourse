@@ -15,7 +15,7 @@ impl CrawlerDetection {
         let mut escaped: Vec<String> = string
             .split('|')
             .filter(|s| !s.is_empty())
-            .map(|agent| regex::escape(agent))
+            .map(regex::escape)
             .collect();
 
         if is_real_and_test {

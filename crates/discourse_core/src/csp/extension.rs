@@ -10,10 +10,7 @@ impl Extension {
             if let Some((directive, source)) = entry.split_once(':') {
                 let directive = directive.trim().to_string();
                 let source = source.trim().to_string();
-                extension
-                    .entry(directive)
-                    .or_insert_with(Vec::new)
-                    .push(source);
+                extension.entry(directive).or_default().push(source);
             }
         }
         extension
@@ -21,9 +18,7 @@ impl Extension {
 
     pub fn auto_script_src_extension(html_docs: &str, cdn_url: Option<&str>) -> Directives {
         let mut extension = Directives::new();
-        let script_src = extension
-            .entry("script_src".to_string())
-            .or_insert_with(Vec::new);
+        let script_src = extension.entry("script_src".to_string()).or_default();
 
         let mut start = 0;
         while let Some(script_idx) = html_docs[start..].find("<script") {

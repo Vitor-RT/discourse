@@ -17,10 +17,6 @@ class CommonPasswords
 
   @mutex = Mutex.new
 
-  def self.common_password?(password)
-    return false if password.blank?
-    password_list.include?(password)
-  end
 
   private
 

@@ -16,11 +16,6 @@ class CSRFTokenVerifier
     end
   end
 
-  def call(env)
-    @request = ActionDispatch::Request.new(env.dup)
-
-    raise InvalidCSRFToken unless verified_request?
-  end
 
   public :form_authenticity_token # rubocop:disable Style/AccessModifierDeclarations
 

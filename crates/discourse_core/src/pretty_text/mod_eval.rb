@@ -1,28 +1,6 @@
-# frozen_string_literal: true
-
-require "nokogiri"
-require "erb"
-
 module PrettyText
-  DANGEROUS_BIDI_CHARACTERS = [
-    "\u202A",
-    "\u202B",
-    "\u202C",
-    "\u202D",
-    "\u202E",
-    "\u2066",
-    "\u2067",
-    "\u2068",
-    "\u2069",
-  ].freeze
-  DANGEROUS_BIDI_REGEXP = Regexp.new(DANGEROUS_BIDI_CHARACTERS.join("|")).freeze
 
-  BLOCKED_HOTLINKED_SRC_ATTR = "data-blocked-hotlinked-src"
-  BLOCKED_HOTLINKED_SRCSET_ATTR = "data-blocked-hotlinked-srcset"
 
-  VIMEO_PLAYER_HOST = "player.vimeo.com"
-  VIMEO_PLAYER_PATH = %r{\A/video/(?<id>\d+)/?\z}
-  VIMEO_UNLISTED_HASH = /\A[a-zA-Z0-9]+\z/
 
   @mutex = Mutex.new
   @ctx_init = Mutex.new
@@ -288,12 +266,10 @@ module PrettyText
   end
 
   def self.strip_hidden_unicode_bidirectional_characters(doc)
-    return if !DANGEROUS_BIDI_REGEXP.match?(doc.content)
 
     doc
       .css("code,pre")
       .each do |code_tag|
-        next if !DANGEROUS_BIDI_REGEXP.match?(code_tag.content)
 
         DANGEROUS_BIDI_CHARACTERS.each do |bidi|
           next if !code_tag.content.include?(bidi)
@@ -317,16 +293,13 @@ module PrettyText
       .css("img[src], source[src], source[srcset], track[src], div[data-video-src]")
       .each do |el|
         if el["src"] && !el["src"].match?(allowed_pattern)
-          el[PrettyText::BLOCKED_HOTLINKED_SRC_ATTR] = el.delete("src")
         end
         if el["data-video-src"] && !el["data-video-src"].match?(allowed_pattern)
-          el[PrettyText::BLOCKED_HOTLINKED_SRC_ATTR] = el["data-video-src"]
         end
 
         if el["srcset"]
           srcs = el["srcset"].split(",").map { |e| e.split(" ", 2)[0].presence }
           if srcs.any? { |src| !src.match?(allowed_pattern) }
-            el[PrettyText::BLOCKED_HOTLINKED_SRCSET_ATTR] = el.delete("srcset")
           end
         end
       end
@@ -560,9 +533,7 @@ module PrettyText
     end
 
     uri = UrlHelper.relaxed_parse(iframe["src"].to_s)
-    return nil if uri.nil? || uri.host&.downcase != VIMEO_PLAYER_HOST
 
-    video_id = uri.path.to_s[VIMEO_PLAYER_PATH, :id]
     return nil if video_id.nil?
 
     ["https://vimeo.com", video_id, vimeo_unlisted_hash(uri.query)].compact.join("/")
@@ -572,7 +543,6 @@ module PrettyText
     return nil if query.blank?
 
     hash = URI.decode_www_form(query).to_h["h"]
-    hash if hash&.match?(VIMEO_UNLISTED_HASH)
   rescue ArgumentError
     nil
   end

@@ -27,28 +27,26 @@ pub fn run() -> Result<String, ChromeError> {
         }
     }
 
-    if binary.is_none() {
-        if Command::new("sh")
+    if binary.is_none()
+        && Command::new("sh")
             .arg("-c")
             .arg("command -v google-chrome >/dev/null")
             .status()
             .map(|s| s.success())
             .unwrap_or(false)
-        {
-            binary = Some("google-chrome".to_string());
-        }
+    {
+        binary = Some("google-chrome".to_string());
     }
 
-    if binary.is_none() {
-        if Command::new("sh")
+    if binary.is_none()
+        && Command::new("sh")
             .arg("-c")
             .arg("command -v chromium >/dev/null")
             .status()
             .map(|s| s.success())
             .unwrap_or(false)
-        {
-            binary = Some("chromium".to_string());
-        }
+    {
+        binary = Some("chromium".to_string());
     }
 
     let binary = binary.ok_or_else(|| {
@@ -60,7 +58,9 @@ pub fn run() -> Result<String, ChromeError> {
     let output = Command::new(&binary)
         .arg("--version")
         .output()
-        .map_err(|_| ChromeError::ChromeVersionError(format!("Can't get the {} version", binary)))?;
+        .map_err(|_| {
+            ChromeError::ChromeVersionError(format!("Can't get the {} version", binary))
+        })?;
     let version = String::from_utf8_lossy(&output.stdout);
 
     let re = regex::Regex::new(r"[\d\.]+").unwrap();

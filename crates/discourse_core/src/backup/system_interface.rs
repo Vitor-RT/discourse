@@ -66,7 +66,13 @@ impl<'a> SystemInterface<'a> {
         let max_wait_seconds = 60;
         let wait_seconds = 6;
 
-        self.logger.log(&format!("Waiting up to {} seconds for Sidekiq to finish running jobs...", max_wait_seconds), None);
+        self.logger.log(
+            &format!(
+                "Waiting up to {} seconds for Sidekiq to finish running jobs...",
+                max_wait_seconds
+            ),
+            None,
+        );
 
         let max_iterations = max_wait_seconds / wait_seconds;
         let mut iterations = 1;
@@ -79,10 +85,18 @@ impl<'a> SystemInterface<'a> {
 
             iterations += 1;
             if iterations > max_iterations {
-                return Err("Sidekiq did not finish running all the jobs in the allowed time!".into());
+                return Err(
+                    "Sidekiq did not finish running all the jobs in the allowed time!".into(),
+                );
             }
 
-            self.logger.log(&format!("Waiting for sidekiq to finish running jobs... #{}", iterations), None);
+            self.logger.log(
+                &format!(
+                    "Waiting for sidekiq to finish running jobs... #{}",
+                    iterations
+                ),
+                None,
+            );
         }
 
         Ok(())

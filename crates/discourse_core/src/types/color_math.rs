@@ -95,7 +95,11 @@ pub mod converters {
             h /= 6.0;
         }
 
-        ((h * 360.0).round() as u32, (s * 100.0).round() as u32, (l * 100.0).round() as u32)
+        (
+            (h * 360.0).round() as u32,
+            (s * 100.0).round() as u32,
+            (l * 100.0).round() as u32,
+        )
     }
 
     pub fn hsl_to_rgb(h: u32, s: u32, l: u32) -> (u32, u32, u32) {
@@ -123,7 +127,11 @@ pub mod converters {
             b = hue_to_rgb(p, q, h - 1.0 / 3.0);
         }
 
-        ((r * 255.0).round() as u32, (g * 255.0).round() as u32, (b * 255.0).round() as u32)
+        (
+            (r * 255.0).round() as u32,
+            (g * 255.0).round() as u32,
+            (b * 255.0).round() as u32,
+        )
     }
 
     fn hue_to_rgb(p: f64, q: f64, mut t: f64) -> f64 {

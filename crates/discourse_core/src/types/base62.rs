@@ -18,11 +18,11 @@ pub fn encode(mut num: u64) -> String {
 pub fn decode(str: &str) -> u64 {
     let mut num = 0;
     for c in str.chars() {
-        let val = if c >= '0' && c <= '9' {
+        let val = if c.is_ascii_digit() {
             c as u64 - '0' as u64
-        } else if c >= 'a' && c <= 'z' {
+        } else if c.is_ascii_lowercase() {
             c as u64 - 'a' as u64 + 10
-        } else if c >= 'A' && c <= 'Z' {
+        } else if c.is_ascii_uppercase() {
             c as u64 - 'A' as u64 + 36
         } else {
             0 // Invalid char handling, for now just 0

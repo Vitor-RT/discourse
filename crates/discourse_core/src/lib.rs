@@ -7,5 +7,6 @@ pub mod compression;
 pub mod csp;
 pub mod demons;
 pub mod logging;
+pub mod reviewable;
 pub mod text_utils;
 pub mod types;

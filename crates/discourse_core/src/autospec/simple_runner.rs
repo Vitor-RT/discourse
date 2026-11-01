@@ -1,11 +1,11 @@
 use crate::autospec::base_runner::BaseRunner;
-use crate::autospec::rspec_runner::RspecRunner;
 use crate::autospec::formatter::Formatter;
+use crate::autospec::rspec_runner::RspecRunner;
+use std::env;
 use std::process::{Child, Command};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
-use std::env;
 
 pub struct SimpleRunner {
     pub rspec_runner: RspecRunner,
@@ -41,12 +41,20 @@ impl BaseRunner for SimpleRunner {
         self.abort();
 
         let formatter_path = Formatter::setup_ruby_formatter();
-        let args = vec!["-r".to_string(), formatter_path, "-f".to_string(), "Autospec::Formatter".to_string()];
+        let args = vec![
+            "-r".to_string(),
+            formatter_path,
+            "-f".to_string(),
+            "Autospec::Formatter".to_string(),
+        ];
 
         let line_specified = specs.split_whitespace().any(|s| s.contains(':'));
         let multiple_files = specs.split_whitespace().count() > 1 || specs == "spec";
 
-        let command_str = if env::var("PARALLEL_SPEC").unwrap_or_default() == "1" && multiple_files && !line_specified {
+        let command_str = if env::var("PARALLEL_SPEC").unwrap_or_default() == "1"
+            && multiple_files
+            && !line_specified
+        {
             "bin/turbo_rspec"
         } else {
             "bin/rspec"
@@ -61,7 +69,10 @@ impl BaseRunner for SimpleRunner {
         }
 
         cmd.env("RAILS_ENV", "test");
-        if specs.split_whitespace().any(|s| s.starts_with("plugins") || s.starts_with("./plugins")) {
+        if specs
+            .split_whitespace()
+            .any(|s| s.starts_with("plugins") || s.starts_with("./plugins"))
+        {
             cmd.env("LOAD_PLUGINS", "1");
             println!("Loading plugins while running specs");
         }

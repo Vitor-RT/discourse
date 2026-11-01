@@ -43,7 +43,9 @@ impl ReloadCss {
     }
 
     pub fn run_on_change(mut paths: Vec<String>) {
-        let is_css = paths.iter().any(|p| p.ends_with(".css") || p.ends_with(".scss") || p.ends_with(".sass"));
+        let is_css = paths
+            .iter()
+            .any(|p| p.ends_with(".css") || p.ends_with(".scss") || p.ends_with(".sass"));
 
         if is_css {
             // Stub for DiscourseStylesheets compile

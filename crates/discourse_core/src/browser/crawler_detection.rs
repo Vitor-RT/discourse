@@ -15,7 +15,7 @@ impl CrawlerDetection {
         let mut escaped: Vec<String> = string
             .split('|')
             .filter(|s| !s.is_empty())
-            .map(|agent| regex::escape(agent))
+            .map(regex::escape)
             .collect();
 
         if is_real_and_test {
@@ -23,7 +23,7 @@ impl CrawlerDetection {
         }
 
         if escaped.is_empty() {
-             return Regex::new(r"a^").unwrap();
+            return Regex::new(r"a^").unwrap();
         }
 
         let pattern = escaped.join("|");
@@ -38,8 +38,12 @@ impl CrawlerDetection {
         crawler_check_bypass_agents: &str,
         is_test: bool,
     ) -> bool {
-        let ua_contains_wayback = user_agent.map(|ua| ua.contains(Self::WAYBACK_MACHINE_URL)).unwrap_or(false);
-        let via_contains_wayback = via_header.map(|via| via.contains(Self::WAYBACK_MACHINE_URL)).unwrap_or(false);
+        let ua_contains_wayback = user_agent
+            .map(|ua| ua.contains(Self::WAYBACK_MACHINE_URL))
+            .unwrap_or(false);
+        let via_contains_wayback = via_header
+            .map(|via| via.contains(Self::WAYBACK_MACHINE_URL))
+            .unwrap_or(false);
 
         if user_agent.is_none() || ua_contains_wayback || via_contains_wayback {
             return true;
@@ -80,10 +84,14 @@ impl CrawlerDetection {
 
         if !allowed_crawler_user_agents.is_empty() {
             let allowlisted = Self::to_matcher(allowed_crawler_user_agents, false);
-            user_agent.map(|ua| allowlisted.is_match(ua)).unwrap_or(false)
+            user_agent
+                .map(|ua| allowlisted.is_match(ua))
+                .unwrap_or(false)
         } else {
             let blocklisted = Self::to_matcher(blocked_crawler_user_agents, false);
-            user_agent.map(|ua| !blocklisted.is_match(ua)).unwrap_or(true)
+            user_agent
+                .map(|ua| !blocklisted.is_match(ua))
+                .unwrap_or(true)
         }
     }
 
@@ -104,7 +112,11 @@ impl CrawlerDetection {
             crawler_user_agents,
             crawler_check_bypass_agents,
             is_test,
-        ) && !Self::allow_crawler(user_agent, allowed_crawler_user_agents, blocked_crawler_user_agents)
+        ) && !Self::allow_crawler(
+            user_agent,
+            allowed_crawler_user_agents,
+            blocked_crawler_user_agents,
+        )
     }
 }
 
@@ -115,8 +127,10 @@ mod tests {
     #[test]
     fn test_to_matcher() {
         let matcher = CrawlerDetection::to_matcher("Googlebot|Bingbot", false);
-        assert!(matcher.is_match("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"));
-        assert!(matcher.is_match("Mozilla/5.0 (compatible; Bingbot/2.0; +http://www.bing.com/bingbot.htm)"));
+        assert!(matcher
+            .is_match("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"));
+        assert!(matcher
+            .is_match("Mozilla/5.0 (compatible; Bingbot/2.0; +http://www.bing.com/bingbot.htm)"));
         assert!(!matcher.is_match("Mozilla/5.0 (Windows NT 10.0; Win64; x64)"));
 
         let empty_matcher = CrawlerDetection::to_matcher("", false);
@@ -125,7 +139,14 @@ mod tests {
 
     #[test]
     fn test_is_crawler() {
-        assert!(CrawlerDetection::is_crawler(Some("archive.org_bot"), None, "", "", "", false));
+        assert!(CrawlerDetection::is_crawler(
+            Some("archive.org_bot"),
+            None,
+            "",
+            "",
+            "",
+            false
+        ));
         assert!(CrawlerDetection::is_crawler(None, None, "", "", "", false));
     }
 }

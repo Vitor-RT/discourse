@@ -33,7 +33,10 @@ impl DefaultPolicy {
         directives.insert("worker-src".to_string(), Self::worker_src(settings));
 
         if Self::restrict_embed(settings) {
-            directives.insert("frame-ancestors".to_string(), Self::frame_ancestors(settings));
+            directives.insert(
+                "frame-ancestors".to_string(),
+                Self::frame_ancestors(settings),
+            );
         }
 
         directives.insert("manifest-src".to_string(), vec!["'self'".to_string()]);
@@ -48,7 +51,10 @@ impl DefaultPolicy {
     }
 
     fn script_src(settings: &CspSettings) -> Vec<String> {
-        let mut sources = vec!["'strict-dynamic'".to_string(), "'wasm-unsafe-eval'".to_string()];
+        let mut sources = vec![
+            "'strict-dynamic'".to_string(),
+            "'wasm-unsafe-eval'".to_string(),
+        ];
         if let Some(uri) = &settings.report_uri {
             if !uri.is_empty() {
                 sources.push("'report-sample'".to_string());

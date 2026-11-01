@@ -24,9 +24,13 @@ mod tests {
     use super::*;
     use serde_json::json;
     use std::env;
+    use std::sync::Mutex;
+
+    static ENV_MUTEX: Mutex<()> = Mutex::new(());
 
     #[test]
     fn test_enabled_true() {
+        let _guard = ENV_MUTEX.lock().unwrap();
         env::set_var("ENABLE_LOGSTASH_LOGGER", "1");
         assert!(enabled());
         env::remove_var("ENABLE_LOGSTASH_LOGGER");
@@ -34,6 +38,7 @@ mod tests {
 
     #[test]
     fn test_enabled_false() {
+        let _guard = ENV_MUTEX.lock().unwrap();
         env::set_var("ENABLE_LOGSTASH_LOGGER", "0");
         assert!(!enabled());
         env::remove_var("ENABLE_LOGSTASH_LOGGER");

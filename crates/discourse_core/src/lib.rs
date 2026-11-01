@@ -10,3 +10,4 @@ pub mod logging;
 pub mod text_utils;
 pub mod types;
 pub mod mini_sql;
+pub mod search;

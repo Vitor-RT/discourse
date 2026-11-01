@@ -1,10 +1,10 @@
-use std::fs::File;
-use std::io::{Read, Write};
-use std::path::Path;
+use super::strategy::{CompressionError, Strategy};
 use flate2::read::GzDecoder;
 use flate2::write::GzEncoder;
 use flate2::Compression;
-use super::strategy::{Strategy, CompressionError};
+use std::fs::File;
+use std::io::{Read, Write};
+use std::path::Path;
 
 pub struct Gzip;
 
@@ -35,10 +35,16 @@ impl Strategy for Gzip {
         Ok(gzip_target)
     }
 
-    fn decompress(&self, dest_path: &Path, compressed_file_path: &Path, max_size: u64) -> Result<String, CompressionError> {
+    fn decompress(
+        &self,
+        dest_path: &Path,
+        compressed_file_path: &Path,
+        max_size: u64,
+    ) -> Result<String, CompressionError> {
         std::fs::create_dir_all(dest_path)?;
 
-        let file_name = compressed_file_path.file_name()
+        let file_name = compressed_file_path
+            .file_name()
             .ok_or_else(|| CompressionError::Other("Invalid file name".to_string()))?
             .to_string_lossy()
             .to_string();
@@ -52,9 +58,10 @@ impl Strategy for Gzip {
         let entry_path = dest_path.join(basename);
 
         if entry_path.exists() {
-            return Err(CompressionError::DestinationFileExistsError(
-                format!("Destination '{}' already exists", entry_path.display())
-            ));
+            return Err(CompressionError::DestinationFileExistsError(format!(
+                "Destination '{}' already exists",
+                entry_path.display()
+            )));
         }
 
         let compressed_file = File::open(compressed_file_path)?;

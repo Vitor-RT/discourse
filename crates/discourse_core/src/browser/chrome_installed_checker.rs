@@ -60,7 +60,9 @@ pub fn run() -> Result<String, ChromeError> {
     let output = Command::new(&binary)
         .arg("--version")
         .output()
-        .map_err(|_| ChromeError::ChromeVersionError(format!("Can't get the {} version", binary)))?;
+        .map_err(|_| {
+            ChromeError::ChromeVersionError(format!("Can't get the {} version", binary))
+        })?;
     let version = String::from_utf8_lossy(&output.stdout);
 
     let re = regex::Regex::new(r"[\d\.]+").unwrap();

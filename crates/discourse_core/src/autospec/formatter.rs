@@ -1,4 +1,4 @@
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
@@ -58,7 +58,8 @@ end
         let path = "/tmp/discourse_autospec_formatter.rb";
         if !Path::new(path).exists() {
             let mut file = File::create(path).unwrap();
-            file.write_all(Self::RUBY_FORMATTER_CODE.as_bytes()).unwrap();
+            file.write_all(Self::RUBY_FORMATTER_CODE.as_bytes())
+                .unwrap();
         }
         path.to_string()
     }

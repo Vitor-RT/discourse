@@ -1,9 +1,9 @@
-use crate::autospec::simple_runner::SimpleRunner;
-use std::sync::{Arc, Condvar, Mutex};
-use std::collections::HashMap;
-use std::thread;
 use crate::autospec::base_runner::BaseRunner;
-use notify::{Watcher, RecursiveMode, Result as NotifyResult};
+use crate::autospec::simple_runner::SimpleRunner;
+use notify::{RecursiveMode, Result as NotifyResult, Watcher};
+use std::collections::HashMap;
+use std::sync::{Arc, Condvar, Mutex};
+use std::thread;
 
 pub struct Manager {
     pub debug: bool,
@@ -41,33 +41,35 @@ impl Manager {
         let signal_clone = Arc::clone(&self.signal);
         let abort_runner = Arc::clone(&self.simple_runner);
         thread::spawn(move || {
-            let mut watcher = notify::recommended_watcher(move |res: NotifyResult<notify::Event>| {
-                match res {
-                    Ok(event) => {
-                        let mut changes = Vec::new();
-                        for path in event.paths {
-                            if let Some(p) = path.to_str() {
-                                // Ignore lib/autospec explicitly as in ruby version
-                                if p.contains("lib/autospec") {
-                                    continue;
+            let mut watcher =
+                notify::recommended_watcher(move |res: NotifyResult<notify::Event>| {
+                    match res {
+                        Ok(event) => {
+                            let mut changes = Vec::new();
+                            for path in event.paths {
+                                if let Some(p) = path.to_str() {
+                                    // Ignore lib/autospec explicitly as in ruby version
+                                    if p.contains("lib/autospec") {
+                                        continue;
+                                    }
+                                    changes.push((p.to_string(), p.to_string()));
                                 }
-                                changes.push((p.to_string(), p.to_string()));
                             }
-                        }
 
-                        if !changes.is_empty() {
-                            abort_runner.lock().unwrap().abort();
-                            let mut q = queue_clone.lock().unwrap();
-                            for (file, spec) in changes {
-                                q.retain(|(_, s)| !s.trim().starts_with(spec.trim()));
-                                q.insert(0, (file, spec));
+                            if !changes.is_empty() {
+                                abort_runner.lock().unwrap().abort();
+                                let mut q = queue_clone.lock().unwrap();
+                                for (file, spec) in changes {
+                                    q.retain(|(_, s)| !s.trim().starts_with(spec.trim()));
+                                    q.insert(0, (file, spec));
+                                }
+                                signal_clone.notify_all();
                             }
-                            signal_clone.notify_all();
                         }
-                    },
-                    Err(e) => println!("watch error: {:?}", e),
-                }
-            }).unwrap();
+                        Err(e) => println!("watch error: {:?}", e),
+                    }
+                })
+                .unwrap();
 
             // Watch relevant directories just like original code
             let dirs = vec!["spec", "lib", "app", "config", "test", "vendor", "plugins"];
@@ -114,65 +116,63 @@ impl Manager {
         let runner = Arc::clone(&self.simple_runner);
         let auto_run_all = self.auto_run_all;
 
-        thread::spawn(move || {
-            loop {
-                let mut current: Option<(String, String)> = None;
-                {
-                    let q = queue.lock().unwrap();
-                    if let Some(c) = q.first() {
-                        current = Some(c.clone());
-                    }
+        thread::spawn(move || loop {
+            let mut current: Option<(String, String)> = None;
+            {
+                let q = queue.lock().unwrap();
+                if let Some(c) = q.first() {
+                    current = Some(c.clone());
                 }
+            }
 
-                let mut last_failed = false;
-                if let Some(c) = current {
-                    last_failed = {
-                        let result = {
-                            let r = runner.lock().unwrap();
-                            r.run(&c.1)
-                        };
-
-                        if result == 0 {
-                            let mut q = queue.lock().unwrap();
-                            if !q.is_empty() {
-                                q.remove(0);
-                            }
-                            false
-                        } else {
-                            true
-                        }
+            let mut last_failed = false;
+            if let Some(c) = current {
+                last_failed = {
+                    let result = {
+                        let r = runner.lock().unwrap();
+                        r.run(&c.1)
                     };
 
-                    if last_failed {
+                    if result == 0 {
                         let mut q = queue.lock().unwrap();
-                        if let Some(first) = q.first() {
-                            if first.0 == "focus" {
-                                q.remove(0);
-                            }
+                        if !q.is_empty() {
+                            q.remove(0);
                         }
+                        false
+                    } else {
+                        true
+                    }
+                };
 
-                        let failed_specs = {
-                            let r = runner.lock().unwrap();
-                            r.failed_specs()
-                        };
-
-                        let specs_to_focus = failed_specs.into_iter().take(11).collect::<Vec<_>>();
-
-                        if !specs_to_focus.is_empty() {
-                            q.insert(0, ("focus".to_string(), specs_to_focus.join(" ")));
-                        }
-
-                        if auto_run_all {
-                            q.retain(|(_, s)| s != "spec");
-                            q.push(("spec".to_string(), "spec".to_string()));
+                if last_failed {
+                    let mut q = queue.lock().unwrap();
+                    if let Some(first) = q.first() {
+                        if first.0 == "focus" {
+                            q.remove(0);
                         }
                     }
-                }
 
-                let mut guard = queue.lock().unwrap();
-                if guard.is_empty() || last_failed {
-                    guard = signal.wait(guard).unwrap();
+                    let failed_specs = {
+                        let r = runner.lock().unwrap();
+                        r.failed_specs()
+                    };
+
+                    let specs_to_focus = failed_specs.into_iter().take(11).collect::<Vec<_>>();
+
+                    if !specs_to_focus.is_empty() {
+                        q.insert(0, ("focus".to_string(), specs_to_focus.join(" ")));
+                    }
+
+                    if auto_run_all {
+                        q.retain(|(_, s)| s != "spec");
+                        q.push(("spec".to_string(), "spec".to_string()));
+                    }
                 }
+            }
+
+            let mut guard = queue.lock().unwrap();
+            if guard.is_empty() || last_failed {
+                guard = signal.wait(guard).unwrap();
             }
         });
     }
@@ -193,8 +193,7 @@ impl Manager {
         // Covered in run via thread
     }
 
-    pub fn process_change(&mut self, _files: Vec<(String, Option<usize>)>) {
-    }
+    pub fn process_change(&mut self, _files: Vec<(String, Option<usize>)>) {}
 
     pub fn queue_specs(&mut self, specs: Vec<(String, String)>) {
         if specs.is_empty() {
@@ -261,7 +260,8 @@ impl Manager {
                     println!("{}", s);
                 }
                 println!();
-                let new_specs: Vec<(String, String)> = specs.into_iter().map(|s| (s.clone(), s)).collect();
+                let new_specs: Vec<(String, String)> =
+                    specs.into_iter().map(|s| (s.clone(), s)).collect();
                 self.queue_specs(new_specs);
             }
         }

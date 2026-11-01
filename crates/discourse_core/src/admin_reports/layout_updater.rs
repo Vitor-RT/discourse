@@ -1,5 +1,5 @@
+use crate::admin_reports::mounter::{AdminDashboardReportStore, MounterError};
 use crate::admin_reports::registry::Registry;
-use crate::admin_reports::mounter::{MounterError, AdminDashboardReportStore};
 use std::collections::HashSet;
 
 pub struct LayoutItem {
@@ -15,14 +15,22 @@ pub struct LayoutUpdater<'a> {
 }
 
 impl<'a> LayoutUpdater<'a> {
-    pub fn call(&mut self, items: &[LayoutItem], guardian: &dyn std::any::Any) -> Result<(), MounterError> {
-        let mut grouped: std::collections::HashMap<&str, Vec<&LayoutItem>> = std::collections::HashMap::new();
+    pub fn call(
+        &mut self,
+        items: &[LayoutItem],
+        guardian: &dyn std::any::Any,
+    ) -> Result<(), MounterError> {
+        let mut grouped: std::collections::HashMap<&str, Vec<&LayoutItem>> =
+            std::collections::HashMap::new();
         for item in items {
             grouped.entry(&item.source).or_default().push(item);
         }
 
         for (source, group) in grouped {
-            let provider = self.registry.provider_for(source).ok_or_else(|| MounterError::InvalidParameters("items".to_string()))?;
+            let provider = self
+                .registry
+                .provider_for(source)
+                .ok_or_else(|| MounterError::InvalidParameters("items".to_string()))?;
 
             let requested: HashSet<String> = group.iter().map(|i| i.identifier.clone()).collect();
             let requested_vec: Vec<String> = requested.iter().cloned().collect();
@@ -52,9 +60,9 @@ impl<'a> LayoutUpdater<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::admin_reports::source_provider::SourceProvider;
-    use crate::admin_reports::resolved_report::ResolvedReport;
     use crate::admin_reports::mounter::AdminDashboardReportRecord;
+    use crate::admin_reports::resolved_report::ResolvedReport;
+    use crate::admin_reports::source_provider::SourceProvider;
     use std::collections::HashMap;
 
     struct DummyProvider {
@@ -63,12 +71,40 @@ mod tests {
     }
 
     impl SourceProvider for DummyProvider {
-        fn source_name(&self) -> String { self.source.clone() }
-        fn label(&self) -> Option<String> { None }
-        fn resolve_many(&self, _ids: &[String], _g: &dyn std::any::Any) -> HashMap<String, ResolvedReport> { HashMap::new() }
-        fn fetch_many(&self, _ids: &[String], _g: &dyn std::any::Any, _f: &HashMap<String, String>) -> HashMap<String, serde_json::Value> { HashMap::new() }
-        fn list_all(&self, _s: Option<&str>, _a: Option<&HashMap<String, String>>, _l: Option<usize>) -> Vec<ResolvedReport> { vec![] }
-        fn accessible_ids(&self, _identifiers: &[String], _guardian: &dyn std::any::Any) -> HashSet<String> {
+        fn source_name(&self) -> String {
+            self.source.clone()
+        }
+        fn label(&self) -> Option<String> {
+            None
+        }
+        fn resolve_many(
+            &self,
+            _ids: &[String],
+            _g: &dyn std::any::Any,
+        ) -> HashMap<String, ResolvedReport> {
+            HashMap::new()
+        }
+        fn fetch_many(
+            &self,
+            _ids: &[String],
+            _g: &dyn std::any::Any,
+            _f: &HashMap<String, String>,
+        ) -> HashMap<String, serde_json::Value> {
+            HashMap::new()
+        }
+        fn list_all(
+            &self,
+            _s: Option<&str>,
+            _a: Option<&HashMap<String, String>>,
+            _l: Option<usize>,
+        ) -> Vec<ResolvedReport> {
+            vec![]
+        }
+        fn accessible_ids(
+            &self,
+            _identifiers: &[String],
+            _guardian: &dyn std::any::Any,
+        ) -> HashSet<String> {
             self.accessible.clone()
         }
     }
@@ -79,24 +115,45 @@ mod tests {
 
     impl AdminDashboardReportStore for MockStore {
         fn find_by(&self, source: &str, identifier: &str) -> Option<AdminDashboardReportRecord> {
-            self.records.iter().find(|r| r.source == source && r.identifier == identifier).map(|r| AdminDashboardReportRecord {
-                source: r.source.clone(),
-                identifier: r.identifier.clone(),
-            })
+            self.records
+                .iter()
+                .find(|r| r.source == source && r.identifier == identifier)
+                .map(|r| AdminDashboardReportRecord {
+                    source: r.source.clone(),
+                    identifier: r.identifier.clone(),
+                })
         }
-        fn count(&self) -> usize { self.records.len() }
-        fn create(&mut self, source: String, identifier: String) -> Result<AdminDashboardReportRecord, MounterError> {
-            let record = AdminDashboardReportRecord { source: source.clone(), identifier: identifier.clone() };
-            self.records.push(AdminDashboardReportRecord { source, identifier });
+        fn count(&self) -> usize {
+            self.records.len()
+        }
+        fn create(
+            &mut self,
+            source: String,
+            identifier: String,
+        ) -> Result<AdminDashboardReportRecord, MounterError> {
+            let record = AdminDashboardReportRecord {
+                source: source.clone(),
+                identifier: identifier.clone(),
+            };
+            self.records
+                .push(AdminDashboardReportRecord { source, identifier });
             Ok(record)
         }
         fn delete_all(&mut self, source: &str, identifier: &str) {
-            self.records.retain(|r| !(r.source == source && r.identifier == identifier));
+            self.records
+                .retain(|r| !(r.source == source && r.identifier == identifier));
         }
         fn delete_all_records(&mut self) {
             self.records.clear();
         }
-        fn create_layout_record(&mut self, source: String, identifier: String, _position: usize, _rows: usize, _cols: usize) {
+        fn create_layout_record(
+            &mut self,
+            source: String,
+            identifier: String,
+            _position: usize,
+            _rows: usize,
+            _cols: usize,
+        ) {
             let _ = self.create(source, identifier);
         }
     }
@@ -108,14 +165,30 @@ mod tests {
             accessible: HashSet::from(["id1".to_string(), "id2".to_string()]),
         })]);
 
-        let mut store = MockStore { records: vec![
-            AdminDashboardReportRecord { source: "src1".to_string(), identifier: "id3".to_string() }
-        ] };
-        let mut updater = LayoutUpdater { registry: &registry, store: &mut store };
+        let mut store = MockStore {
+            records: vec![AdminDashboardReportRecord {
+                source: "src1".to_string(),
+                identifier: "id3".to_string(),
+            }],
+        };
+        let mut updater = LayoutUpdater {
+            registry: &registry,
+            store: &mut store,
+        };
 
         let items = vec![
-            LayoutItem { source: "src1".to_string(), identifier: "id1".to_string(), rows: None, cols: None },
-            LayoutItem { source: "src1".to_string(), identifier: "id2".to_string(), rows: None, cols: None },
+            LayoutItem {
+                source: "src1".to_string(),
+                identifier: "id1".to_string(),
+                rows: None,
+                cols: None,
+            },
+            LayoutItem {
+                source: "src1".to_string(),
+                identifier: "id2".to_string(),
+                rows: None,
+                cols: None,
+            },
         ];
 
         let result = updater.call(&items, &());
@@ -135,11 +208,24 @@ mod tests {
         })]);
 
         let mut store = MockStore { records: vec![] };
-        let mut updater = LayoutUpdater { registry: &registry, store: &mut store };
+        let mut updater = LayoutUpdater {
+            registry: &registry,
+            store: &mut store,
+        };
 
         let items = vec![
-            LayoutItem { source: "src1".to_string(), identifier: "id1".to_string(), rows: None, cols: None },
-            LayoutItem { source: "src1".to_string(), identifier: "id2".to_string(), rows: None, cols: None },
+            LayoutItem {
+                source: "src1".to_string(),
+                identifier: "id1".to_string(),
+                rows: None,
+                cols: None,
+            },
+            LayoutItem {
+                source: "src1".to_string(),
+                identifier: "id2".to_string(),
+                rows: None,
+                cols: None,
+            },
         ];
 
         let result = updater.call(&items, &());

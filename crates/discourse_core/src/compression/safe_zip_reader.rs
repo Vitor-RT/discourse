@@ -1,6 +1,6 @@
+use super::strategy::CompressionError;
 use std::fs::File;
 use zip::ZipArchive;
-use super::strategy::CompressionError;
 
 pub struct SafeZipReader {
     pub archive: ZipArchive<File>,
@@ -20,7 +20,9 @@ impl SafeZipReader {
 
         if let Some(max_entries) = max_entries {
             if archive.len() > max_entries {
-                return Err(CompressionError::TooManyEntriesError("Zip archive has too many entries".to_string()));
+                return Err(CompressionError::TooManyEntriesError(
+                    "Zip archive has too many entries".to_string(),
+                ));
             }
         }
 
@@ -31,7 +33,10 @@ impl SafeZipReader {
                 let uncompressed = entry.size();
 
                 if compressed > 0 && (uncompressed as f64 / compressed as f64) > ratio {
-                    return Err(CompressionError::SuspiciousEntryError(format!("Zip entry {} has suspicious compression ratio", entry.name())));
+                    return Err(CompressionError::SuspiciousEntryError(format!(
+                        "Zip entry {} has suspicious compression ratio",
+                        entry.name()
+                    )));
                 }
             }
         }
@@ -53,7 +58,10 @@ impl SafeZipReader {
 
         if let Some(limit) = self.remaining_total_bytes {
             if entry.size() > limit {
-                 return Err(CompressionError::EntryTooLargeError(format!("Zip entry {} is too large", entry.name())));
+                return Err(CompressionError::EntryTooLargeError(format!(
+                    "Zip entry {} is too large",
+                    entry.name()
+                )));
             }
         }
 
@@ -65,8 +73,8 @@ impl SafeZipReader {
 mod tests {
     use super::*;
     use std::io::Write;
-    use zip::write::SimpleFileOptions;
     use tempfile::tempdir;
+    use zip::write::SimpleFileOptions;
 
     #[test]
     fn test_valid_zip() {
@@ -75,7 +83,8 @@ mod tests {
         let file = File::create(&path).unwrap();
         let mut zip = zip::ZipWriter::new(file);
 
-        let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
+        let options =
+            SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
         zip.start_file("test.txt", options).unwrap();
         zip.write_all(b"hello world").unwrap();
         zip.finish().unwrap();
@@ -92,13 +101,17 @@ mod tests {
         let file = File::create(&path).unwrap();
         let mut zip = zip::ZipWriter::new(file);
 
-        let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
+        let options =
+            SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
         zip.start_file("test.txt", options).unwrap();
         zip.write_all(b"hello world").unwrap();
         zip.finish().unwrap();
 
         let file = File::open(&path).unwrap();
         let result = SafeZipReader::new(file, Some(0), Some(100), None);
-        assert!(matches!(result, Err(CompressionError::TooManyEntriesError(_))));
+        assert!(matches!(
+            result,
+            Err(CompressionError::TooManyEntriesError(_))
+        ));
     }
 }

@@ -61,7 +61,10 @@ impl Builder {
         }
 
         let base_url = self.base_url.clone();
-        sources = sources.into_iter().map(|s| Self::normalize_source(&base_url, &s)).collect();
+        sources = sources
+            .into_iter()
+            .map(|s| Self::normalize_source(&base_url, &s))
+            .collect();
 
         if directive == "script-src" || directive == "worker-src" {
             // Ruby logic: reject { |s| s == "'unsafe-inline'" || s == "'self'" || !s.start_with?("'") }
@@ -80,7 +83,10 @@ impl Builder {
             sources.retain(|s| s != "'unsafe-inline'" && s != "'self'" && s.starts_with('\''));
         }
 
-        let entry = self.directives.entry(directive.clone()).or_insert_with(Vec::new);
+        let entry = self
+            .directives
+            .entry(directive.clone())
+            .or_insert_with(Vec::new);
 
         for source in sources {
             if source.contains(';') || source.chars().any(|c| c.is_whitespace()) {

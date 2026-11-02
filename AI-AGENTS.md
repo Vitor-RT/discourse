@@ -104,4 +104,46 @@ use `bin/lint --fix --recent` only when appropriate.
 - Focus on translating Ruby logic and unit tests into Rust native `#[cfg(test)]` modules verified via `cargo check` and `cargo test`.
 - All migration PRs target the `rust-migration` branch.
 - Once a Ruby file/module is translated and verified in Rust, the legacy `.rb` file is removed from `lib/` or `app/`.
-- CRITICAL MERGE RULE: NEVER close PRs with `gh pr close`! NEVER post automated comments on PRs using `gh pr close` or CLI scripts under the user's name! All Pull Requests MUST be merged officially using `gh pr merge <number> --merge --delete-branch` on GitHub so that every PR displays the official purple MERGED status and deletes its remote branch upon merging.
+- CRITICAL MERGE RULE: NEVER close PRs with `gh pr close`! NEVER post automated comments on PRs using CLI scripts under the user's name!
+
+### Non-Interactive CLI Merge & Conflict Resolution Protocol
+When GitHub reports that `gh pr merge <PR_NUMBER>` cannot be merged automatically due to conflicts, the agent MUST follow this non-interactive CLI workflow file-by-file:
+
+1. **Passo 1: Preparar e identificar as branches:**
+   ```bash
+   git fetch origin
+   BASE_BRANCH=$(gh pr view <PR_NUMBER> --repo Vitor-RT/discourse --json baseRefName -q .baseRefName)
+   gh pr checkout <PR_NUMBER> --repo Vitor-RT/discourse
+   ```
+
+2. **Passo 2: Iniciar a mesclagem (Merge):**
+   ```bash
+   git merge origin/$BASE_BRANCH --no-commit --no-ff
+   ```
+
+3. **Passo 3: Listar os arquivos com conflito:**
+   ```bash
+   git diff --name-only --diff-filter=U
+   ```
+
+4. **Passo 4: Consolidar arquivo por arquivo:**
+   Inspect conflict markers (`<<<<<<< HEAD`, `=======`, `>>>>>>>`).
+   Resolve each file surgically (via `git checkout --ours`, `git checkout --theirs`, or custom stream/file editor writing), preserving Ruby logic parity and removing all conflict markers.
+   Stage each resolved file:
+   ```bash
+   git add <file-path>
+   ```
+
+5. **Passo 5: Validar, Comitar e Enviar (Push):**
+   ```bash
+   git diff --check
+   cargo test --manifest-path crates/discourse_core/Cargo.toml
+   git commit -m "merge: resolve conflicts with $BASE_BRANCH"
+   git push origin HEAD
+   ```
+
+6. **Passo 6: Concluir o Pull Request no GitHub:**
+   Once pushed cleanly without conflicts:
+   ```bash
+   gh pr merge <PR_NUMBER> --repo Vitor-RT/discourse --merge --delete-branch
+   ```

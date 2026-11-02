@@ -22,8 +22,20 @@ mod tests {
     #[test]
     fn test_allowed_topic_arn() {
         assert_eq!(Sns::allowed_topic_arn("arn:aws:sns:us-east-1:123456789012:MyTopic", "arn:aws:sns:us-east-1:123456789012:MyTopic|arn:aws:sns:us-east-1:123456789012:OtherTopic"), true);
-        assert_eq!(Sns::allowed_topic_arn("arn:aws:sns:us-east-1:123456789012:MyTopic", ""), false);
-        assert_eq!(Sns::allowed_topic_arn("arn:aws:sns:us-east-1:123456789012:MyTopic", "arn:aws:sns:us-east-1:123456789012:OtherTopic"), false);
-        assert_eq!(Sns::allowed_topic_arn("", "arn:aws:sns:us-east-1:123456789012:MyTopic"), false);
+        assert_eq!(
+            Sns::allowed_topic_arn("arn:aws:sns:us-east-1:123456789012:MyTopic", ""),
+            false
+        );
+        assert_eq!(
+            Sns::allowed_topic_arn(
+                "arn:aws:sns:us-east-1:123456789012:MyTopic",
+                "arn:aws:sns:us-east-1:123456789012:OtherTopic"
+            ),
+            false
+        );
+        assert_eq!(
+            Sns::allowed_topic_arn("", "arn:aws:sns:us-east-1:123456789012:MyTopic"),
+            false
+        );
     }
 }

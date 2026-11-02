@@ -37,7 +37,12 @@ impl<'a, S: AdminDashboardReportStore> Mounter<'a, S> {
         }
     }
 
-    pub fn mount<T: 'static>(&mut self, source_name: &str, identifier: &str, user: &T) -> Result<(), MounterError> {
+    pub fn mount<T: 'static>(
+        &mut self,
+        source_name: &str,
+        identifier: &str,
+        user: &T,
+    ) -> Result<(), MounterError> {
         let provider = self
             .registry
             .provider_for(source_name)
@@ -53,21 +58,24 @@ impl<'a, S: AdminDashboardReportStore> Mounter<'a, S> {
         }
 
         if self.store.find_by(source_name, identifier).is_none() {
-            let _ = self.store.create(source_name.to_string(), identifier.to_string());
+            let _ = self
+                .store
+                .create(source_name.to_string(), identifier.to_string());
         }
 
         Ok(())
     }
 
     pub fn unmount(&mut self, source_name: &str, identifier: &str) {
-        self.store.delete_all(source_name, &[identifier.to_string()]);
+        self.store
+            .delete_all(source_name, &[identifier.to_string()]);
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::source_provider::SourceProvider;
+    use super::*;
     use serde_json::Value;
 
     struct DummyProvider {
@@ -117,15 +125,17 @@ mod tests {
                 })
         }
 
-        fn create(&mut self, source: String, identifier: String) -> Result<AdminDashboardReportRecord, MounterError> {
+        fn create(
+            &mut self,
+            source: String,
+            identifier: String,
+        ) -> Result<AdminDashboardReportRecord, MounterError> {
             let rec = AdminDashboardReportRecord {
                 source: source.clone(),
                 identifier: identifier.clone(),
             };
-            self.records.push(AdminDashboardReportRecord {
-                source,
-                identifier,
-            });
+            self.records
+                .push(AdminDashboardReportRecord { source, identifier });
             Ok(rec)
         }
 
@@ -134,7 +144,8 @@ mod tests {
         }
 
         fn delete_all(&mut self, source: &str, identifiers: &[String]) {
-            self.records.retain(|r| !(r.source == source && identifiers.contains(&r.identifier)));
+            self.records
+                .retain(|r| !(r.source == source && identifiers.contains(&r.identifier)));
         }
 
         fn create_layout_record(

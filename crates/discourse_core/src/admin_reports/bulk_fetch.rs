@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use serde_json::Value;
+use std::collections::HashMap;
 
 use super::registry::Registry;
 
@@ -46,15 +46,18 @@ impl<'a> BulkFetch<'a> {
 
         for (source_name, source_items) in grouped {
             if let Some(provider) = self.registry.provider_for(&source_name) {
-                let identifiers: Vec<String> =
-                    source_items.iter().map(|item| item.identifier.clone()).collect();
+                let identifiers: Vec<String> = source_items
+                    .iter()
+                    .map(|item| item.identifier.clone())
+                    .collect();
 
-                let fetched_reports = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(
-                    || provider.bulk_fetch(&identifiers, filters, user),
-                )) {
-                    Ok(reports) => reports,
-                    Err(_) => HashMap::new(),
-                };
+                let fetched_reports =
+                    match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        provider.bulk_fetch(&identifiers, filters, user)
+                    })) {
+                        Ok(reports) => reports,
+                        Err(_) => HashMap::new(),
+                    };
 
                 for item in source_items {
                     if let Some(data) = fetched_reports.get(&item.identifier) {
@@ -92,8 +95,8 @@ impl<'a> BulkFetch<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::source_provider::SourceProvider;
+    use super::*;
     use serde_json::json;
 
     struct DummyProvider {

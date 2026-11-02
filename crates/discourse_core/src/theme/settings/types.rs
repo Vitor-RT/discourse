@@ -14,7 +14,13 @@ impl ThemeSettingType for BoolType {
                 "f" | "false" | "0" | "" => Value::Bool(false),
                 _ => Value::Bool(false),
             },
-            Value::Number(n) => if n.as_i64() == Some(1) { Value::Bool(true) } else { Value::Bool(false) },
+            Value::Number(n) => {
+                if n.as_i64() == Some(1) {
+                    Value::Bool(true)
+                } else {
+                    Value::Bool(false)
+                }
+            }
             Value::Null => Value::Bool(false),
             _ => Value::Bool(false),
         }
@@ -33,7 +39,7 @@ impl ThemeSettingType for EnumType {
                 } else {
                     Value::String(s.to_string())
                 }
-            },
+            }
             _ => value.clone(),
         }
     }
@@ -50,7 +56,7 @@ impl ThemeSettingType for FloatType {
                 } else {
                     Value::Null
                 }
-            },
+            }
             _ => Value::Null,
         }
     }
@@ -60,14 +66,20 @@ pub struct IntegerType;
 impl ThemeSettingType for IntegerType {
     fn cast(value: &Value) -> Value {
         match value {
-            Value::Number(n) => if n.is_i64() { Value::Number(n.clone()) } else { Value::Null },
+            Value::Number(n) => {
+                if n.is_i64() {
+                    Value::Number(n.clone())
+                } else {
+                    Value::Null
+                }
+            }
             Value::String(s) => {
                 if let Ok(i) = s.parse::<i64>() {
                     Value::Number(i.into())
                 } else {
                     Value::Null
                 }
-            },
+            }
             _ => Value::Null,
         }
     }
@@ -90,9 +102,12 @@ impl ThemeSettingType for ListType {
         match value {
             Value::String(s) => Value::String(s.clone()),
             Value::Array(a) => {
-                let joined: Vec<String> = a.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
+                let joined: Vec<String> = a
+                    .iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect();
                 Value::String(joined.join("|"))
-            },
+            }
             _ => Value::String(String::new()),
         }
     }
@@ -110,7 +125,7 @@ impl ThemeSettingType for ObjectsType {
                     }
                 }
                 Value::Array(out)
-            },
+            }
             Value::String(s) => {
                 if let Ok(parsed) = serde_json::from_str::<Value>(s) {
                     if parsed.is_array() {
@@ -118,7 +133,7 @@ impl ThemeSettingType for ObjectsType {
                     }
                 }
                 Value::Array(Vec::new())
-            },
+            }
             _ => Value::Array(Vec::new()),
         }
     }
@@ -195,8 +210,14 @@ mod tests {
 
     #[test]
     fn test_objects_type_cast() {
-        assert_eq!(ObjectsType::cast(&json!([{"a": 1}, {"b": 2}])), json!([{"a": 1}, {"b": 2}]));
-        assert_eq!(ObjectsType::cast(&json!([{"a": 1}, "string"])), json!([{"a": 1}])); // Drops non-objects
+        assert_eq!(
+            ObjectsType::cast(&json!([{"a": 1}, {"b": 2}])),
+            json!([{"a": 1}, {"b": 2}])
+        );
+        assert_eq!(
+            ObjectsType::cast(&json!([{"a": 1}, "string"])),
+            json!([{"a": 1}])
+        ); // Drops non-objects
         assert_eq!(ObjectsType::cast(&json!("[{\"a\": 1}]")), json!([{"a": 1}]));
         assert_eq!(ObjectsType::cast(&json!("invalid")), json!([]));
     }

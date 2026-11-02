@@ -1,9 +1,9 @@
 pub mod limit_exceeded;
 pub mod on_create_record;
 
-use std::sync::atomic::{AtomicBool, Ordering};
 use deadpool_redis::{redis, Connection};
 use redis::AsyncCommands;
+use std::sync::atomic::{AtomicBool, Ordering};
 use thiserror::Error;
 
 static DISABLED: AtomicBool = AtomicBool::new(false);
@@ -165,9 +165,16 @@ impl RateLimiter {
         Ok(())
     }
 
-    pub async fn age_of_oldest(&self, conn: &mut Connection, now: isize) -> Result<isize, RateLimiterError> {
+    pub async fn age_of_oldest(
+        &self,
+        conn: &mut Connection,
+        now: isize,
+    ) -> Result<isize, RateLimiterError> {
         let items: Vec<String> = conn.lrange(self.prefixed_key(), -1, -1).await?;
-        let oldest = items.first().and_then(|s| s.parse::<isize>().ok()).unwrap_or(0);
+        let oldest = items
+            .first()
+            .and_then(|s| s.parse::<isize>().ok())
+            .unwrap_or(0);
         Ok(now - oldest)
     }
 
@@ -201,12 +208,20 @@ impl RateLimiter {
         self.is_under_limit(conn).await
     }
 
-    pub async fn seconds_to_wait(&self, conn: &mut Connection, now: isize) -> Result<isize, RateLimiterError> {
+    pub async fn seconds_to_wait(
+        &self,
+        conn: &mut Connection,
+        now: isize,
+    ) -> Result<isize, RateLimiterError> {
         let age = self.age_of_oldest(conn, now).await?;
         Ok(self.secs - age)
     }
 
-    async fn rate_limiter_allowed(&self, conn: &mut Connection, now: isize) -> Result<bool, RateLimiterError> {
+    async fn rate_limiter_allowed(
+        &self,
+        conn: &mut Connection,
+        now: isize,
+    ) -> Result<bool, RateLimiterError> {
         let script_content = if self.aggressive {
             PERFORM_LUA_AGGRESSIVE
         } else {
@@ -225,7 +240,11 @@ impl RateLimiter {
         Ok(result == 1)
     }
 
-    pub async fn performed(&self, conn: &mut Connection, raise_error: bool) -> Result<bool, RateLimiterError> {
+    pub async fn performed(
+        &self,
+        conn: &mut Connection,
+        raise_error: bool,
+    ) -> Result<bool, RateLimiterError> {
         if self.rate_unlimited() {
             return Ok(true);
         }
@@ -341,7 +360,9 @@ mod tests {
 
         let wait_err = limiter.performed(&mut conn, true).await.unwrap_err();
         match wait_err {
-            RateLimiterError::LimitExceeded { seconds_to_wait, .. } => {
+            RateLimiterError::LimitExceeded {
+                seconds_to_wait, ..
+            } => {
                 assert!(seconds_to_wait > 8 && seconds_to_wait <= 10);
             }
             _ => panic!("Expected LimitExceeded"),
@@ -379,8 +400,16 @@ mod tests {
         let limiter = build_limiter(1, 10, true).await;
         limiter.clear(&mut conn).await.unwrap();
 
-        assert_eq!(limiter.performed(&mut conn, false).await.unwrap(), true, "first performed should be true");
-        assert_eq!(limiter.performed(&mut conn, false).await.unwrap(), false, "second performed should be false");
+        assert_eq!(
+            limiter.performed(&mut conn, false).await.unwrap(),
+            true,
+            "first performed should be true"
+        );
+        assert_eq!(
+            limiter.performed(&mut conn, false).await.unwrap(),
+            false,
+            "second performed should be false"
+        );
 
         let len: isize = conn.llen(limiter.prefixed_key()).await.unwrap_or(0);
         assert_eq!(len, 2);

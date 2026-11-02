@@ -1,6 +1,6 @@
-use scraper::Html;
 use html_escape::decode_html_entities;
 use regex::Regex;
+use scraper::Html;
 
 pub const BLURB_LENGTH: usize = 200;
 pub const OMISSION: &str = "...";
@@ -37,11 +37,7 @@ pub fn excerpt(text: &str, phrase: &str, radius: usize) -> String {
     let phrase_lower = phrase.to_lowercase();
 
     if let Some(pos) = text_lower.find(&phrase_lower) {
-        let start = if pos > radius {
-            pos - radius
-        } else {
-            0
-        };
+        let start = if pos > radius { pos - radius } else { 0 };
 
         let end = pos + phrase.len() + radius;
         let mut excerpt = String::new();

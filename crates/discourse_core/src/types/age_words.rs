@@ -41,10 +41,19 @@ pub fn distance_of_time_in_words(
         }
         2..=44 => format!("{} minutes", distance_in_minutes),
         45..=89 => "about 1 hour".to_string(),
-        90..=1439 => format!("about {} hours", (distance_in_minutes as f64 / 60.0).round() as i64),
+        90..=1439 => format!(
+            "about {} hours",
+            (distance_in_minutes as f64 / 60.0).round() as i64
+        ),
         1440..=2519 => "1 day".to_string(),
-        2520..=129_599 => format!("{} days", (distance_in_minutes as f64 / 1440.0).round() as i64),
-        129_600..=525_599 => format!("{} months", (distance_in_minutes as f64 / 43200.0).round() as i64),
+        2520..=129_599 => format!(
+            "{} days",
+            (distance_in_minutes as f64 / 1440.0).round() as i64
+        ),
+        129_600..=525_599 => format!(
+            "{} months",
+            (distance_in_minutes as f64 / 43200.0).round() as i64
+        ),
         _ => {
             let mut fyear = from_time.year();
             if from_time.month() >= 3 {
@@ -95,11 +104,20 @@ mod tests {
         let from = Utc.with_ymd_and_hms(2023, 1, 1, 0, 0, 0).unwrap();
         let to_1min = from + chrono::Duration::seconds(45);
 
-        assert_eq!(distance_of_time_in_words(&from, &to_1min, false), "1 minute");
-        assert_eq!(distance_of_time_in_words(&from, &to_1min, true), "less than a minute");
+        assert_eq!(
+            distance_of_time_in_words(&from, &to_1min, false),
+            "1 minute"
+        );
+        assert_eq!(
+            distance_of_time_in_words(&from, &to_1min, true),
+            "less than a minute"
+        );
 
         let to_2h = from + chrono::Duration::hours(2);
-        assert_eq!(distance_of_time_in_words(&from, &to_2h, false), "about 2 hours");
+        assert_eq!(
+            distance_of_time_in_words(&from, &to_2h, false),
+            "about 2 hours"
+        );
 
         let to_1day = from + chrono::Duration::hours(25);
         assert_eq!(distance_of_time_in_words(&from, &to_1day, false), "1 day");
@@ -108,10 +126,16 @@ mod tests {
         assert_eq!(distance_of_time_in_words(&from, &to_5days, false), "5 days");
 
         let to_3months = from + chrono::Duration::days(90);
-        assert_eq!(distance_of_time_in_words(&from, &to_3months, false), "3 months");
+        assert_eq!(
+            distance_of_time_in_words(&from, &to_3months, false),
+            "3 months"
+        );
 
         let to_2years = from + chrono::Duration::days(731);
-        assert_eq!(distance_of_time_in_words(&from, &to_2years, false), "about 2 years");
+        assert_eq!(
+            distance_of_time_in_words(&from, &to_2years, false),
+            "about 2 years"
+        );
     }
 
     #[test]

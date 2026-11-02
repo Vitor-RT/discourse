@@ -1,6 +1,6 @@
+use crate::backup::backup_file_handler::BackupFileHandler;
 use crate::backup::logger::Logger;
 use crate::backup::meta_data_handler::MetaDataHandler;
-use crate::backup::backup_file_handler::BackupFileHandler;
 use std::cell::RefCell;
 
 pub struct UploadsRestorer<'a> {

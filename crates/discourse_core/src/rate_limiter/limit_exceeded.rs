@@ -18,7 +18,11 @@ pub struct LimitExceeded {
 }
 
 impl LimitExceeded {
-    pub fn new(available_in: isize, limit_type: Option<String>, error_code: Option<String>) -> Self {
+    pub fn new(
+        available_in: isize,
+        limit_type: Option<String>,
+        error_code: Option<String>,
+    ) -> Self {
         Self {
             available_in,
             limit_type,

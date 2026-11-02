@@ -1,6 +1,6 @@
+use crate::theme::store::base_importer::Importer;
 use std::fs;
 use std::path::{Path, PathBuf};
-use crate::theme::store::base_importer::Importer;
 
 pub struct DirectoryImporter {
     theme_dir: PathBuf,
@@ -9,7 +9,8 @@ pub struct DirectoryImporter {
 
 impl DirectoryImporter {
     pub fn new<P: AsRef<Path>>(theme_dir: P) -> Self {
-        let temp_folder = std::env::temp_dir().join(format!("discourse_theme_{}", uuid::Uuid::new_v4().simple()));
+        let temp_folder =
+            std::env::temp_dir().join(format!("discourse_theme_{}", uuid::Uuid::new_v4().simple()));
         DirectoryImporter {
             theme_dir: theme_dir.as_ref().to_path_buf(),
             temp_folder,

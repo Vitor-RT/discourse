@@ -1,6 +1,6 @@
-use std::fs;
-use std::path::{PathBuf};
 use crate::theme::store::base_importer::Importer;
+use std::fs;
+use std::path::PathBuf;
 
 pub struct ZipImporter {
     pub filename: String,
@@ -10,7 +10,8 @@ pub struct ZipImporter {
 
 impl ZipImporter {
     pub fn new(filename: String, original_filename: String) -> Self {
-        let temp_folder = std::env::temp_dir().join(format!("discourse_theme_{}", uuid::Uuid::new_v4().simple()));
+        let temp_folder =
+            std::env::temp_dir().join(format!("discourse_theme_{}", uuid::Uuid::new_v4().simple()));
         ZipImporter {
             filename,
             original_filename,
@@ -27,9 +28,8 @@ impl ZipImporter {
             if let Ok(file_type) = entries[0].file_type() {
                 if file_type.is_dir() {
                     let root_dir = entries[0].path();
-                    let root_entries: Vec<_> = fs::read_dir(&root_dir)?
-                        .filter_map(|e| e.ok())
-                        .collect();
+                    let root_entries: Vec<_> =
+                        fs::read_dir(&root_dir)?.filter_map(|e| e.ok()).collect();
 
                     for entry in root_entries {
                         let new_path = self.temp_folder.join(entry.file_name());

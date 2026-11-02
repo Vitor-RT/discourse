@@ -1,7 +1,8 @@
 pub struct GoogleOauth2Authenticator;
 
 impl GoogleOauth2Authenticator {
-    pub const GROUPS_SCOPE: &'static str = "https://www.googleapis.com/auth/admin.directory.group.readonly";
+    pub const GROUPS_SCOPE: &'static str =
+        "https://www.googleapis.com/auth/admin.directory.group.readonly";
     pub const GROUPS_DOMAIN: &'static str = "admin.googleapis.com";
     pub const GROUPS_PATH: &'static str = "/admin/directory/v1/groups";
     pub const OAUTH2_BASE_URL: &'static str = "https://oauth2.googleapis.com";

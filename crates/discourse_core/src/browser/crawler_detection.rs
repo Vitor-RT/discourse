@@ -97,8 +97,7 @@ impl CrawlerDetection {
         }
 
         if !non_crawler_user_agents.trim().is_empty() {
-            let non_crawler_re =
-                Regex::new(&format!("(?i)({})", non_crawler_user_agents)).unwrap();
+            let non_crawler_re = Regex::new(&format!("(?i)({})", non_crawler_user_agents)).unwrap();
             if non_crawler_re.is_match(agent) {
                 return false;
             }
@@ -125,16 +124,14 @@ impl CrawlerDetection {
         };
 
         if !blocked_crawler_user_agents.trim().is_empty() {
-            let blocked_re =
-                Regex::new(&format!("(?i)({})", blocked_crawler_user_agents)).unwrap();
+            let blocked_re = Regex::new(&format!("(?i)({})", blocked_crawler_user_agents)).unwrap();
             if blocked_re.is_match(agent) {
                 return false;
             }
         }
 
         if !allowed_crawler_user_agents.trim().is_empty() {
-            let allowed_re =
-                Regex::new(&format!("(?i)({})", allowed_crawler_user_agents)).unwrap();
+            let allowed_re = Regex::new(&format!("(?i)({})", allowed_crawler_user_agents)).unwrap();
             if allowed_re.is_match(agent) {
                 return true;
             }

@@ -10,7 +10,11 @@ impl LocalStore {
     }
 
     pub fn tombstone_dir(public_dir: &str, relative_base_url: &str) -> String {
-        format!("{}{}", public_dir, relative_base_url.replace("/uploads/", "/uploads/tombstone/"))
+        format!(
+            "{}{}",
+            public_dir,
+            relative_base_url.replace("/uploads/", "/uploads/tombstone/")
+        )
     }
 }
 
@@ -21,6 +25,9 @@ mod tests {
     #[test]
     fn test_local_store() {
         assert!(!LocalStore::external());
-        assert!(LocalStore::is_relative("/uploads/default/1.png", "/uploads/"));
+        assert!(LocalStore::is_relative(
+            "/uploads/default/1.png",
+            "/uploads/"
+        ));
     }
 }

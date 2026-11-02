@@ -125,26 +125,73 @@ mod tests {
 
     #[test]
     fn test_slug_for_ascii() {
-        assert_eq!(Slug::for_string("Hello World!", "topic", MAX_LENGTH, Some(SlugMethod::Ascii)), "hello-world");
-        assert_eq!(Slug::for_string("  Hello   World  ", "topic", MAX_LENGTH, Some(SlugMethod::Ascii)), "hello-world");
-        assert_eq!(Slug::for_string("12345", "topic", MAX_LENGTH, Some(SlugMethod::Ascii)), "topic");
-        assert_eq!(Slug::for_string("Bob's test", "topic", MAX_LENGTH, Some(SlugMethod::Ascii)), "bobs-test");
-        assert_eq!(Slug::for_string("café", "topic", MAX_LENGTH, Some(SlugMethod::Ascii)), "cafe");
+        assert_eq!(
+            Slug::for_string("Hello World!", "topic", MAX_LENGTH, Some(SlugMethod::Ascii)),
+            "hello-world"
+        );
+        assert_eq!(
+            Slug::for_string(
+                "  Hello   World  ",
+                "topic",
+                MAX_LENGTH,
+                Some(SlugMethod::Ascii)
+            ),
+            "hello-world"
+        );
+        assert_eq!(
+            Slug::for_string("12345", "topic", MAX_LENGTH, Some(SlugMethod::Ascii)),
+            "topic"
+        );
+        assert_eq!(
+            Slug::for_string("Bob's test", "topic", MAX_LENGTH, Some(SlugMethod::Ascii)),
+            "bobs-test"
+        );
+        assert_eq!(
+            Slug::for_string("café", "topic", MAX_LENGTH, Some(SlugMethod::Ascii)),
+            "cafe"
+        );
     }
 
     #[test]
     fn test_slug_for_encoded() {
-        assert_eq!(Slug::for_string("Hello World!", "topic", MAX_LENGTH, Some(SlugMethod::Encoded)), "hello-world");
-        assert_eq!(Slug::for_string("test:/:/test", "topic", MAX_LENGTH, Some(SlugMethod::Encoded)), "testtest");
+        assert_eq!(
+            Slug::for_string(
+                "Hello World!",
+                "topic",
+                MAX_LENGTH,
+                Some(SlugMethod::Encoded)
+            ),
+            "hello-world"
+        );
+        assert_eq!(
+            Slug::for_string(
+                "test:/:/test",
+                "topic",
+                MAX_LENGTH,
+                Some(SlugMethod::Encoded)
+            ),
+            "testtest"
+        );
     }
 
     #[test]
     fn test_slug_for_none() {
-        assert_eq!(Slug::for_string("Hello World!", "topic", MAX_LENGTH, Some(SlugMethod::None)), "topic");
+        assert_eq!(
+            Slug::for_string("Hello World!", "topic", MAX_LENGTH, Some(SlugMethod::None)),
+            "topic"
+        );
     }
 
     #[test]
     fn test_emoji_removal() {
-        assert_eq!(Slug::for_string("Hello :smile: World", "topic", MAX_LENGTH, Some(SlugMethod::Ascii)), "hello-world");
+        assert_eq!(
+            Slug::for_string(
+                "Hello :smile: World",
+                "topic",
+                MAX_LENGTH,
+                Some(SlugMethod::Ascii)
+            ),
+            "hello-world"
+        );
     }
 }

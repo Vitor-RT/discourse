@@ -23,7 +23,8 @@ pub struct ListSettingGroupResolver {
 
 impl ListSettingGroupResolver {
     pub fn parsed_groups(&self) -> Vec<String> {
-        self.value.split(self.delimiter)
+        self.value
+            .split(self.delimiter)
             .map(|s| s.trim().to_string())
             .filter(|s| !s.is_empty())
             .collect()
@@ -69,7 +70,10 @@ mod tests {
 
     #[test]
     fn test_list_setting_parsed_groups() {
-        let resolver = ListSettingGroupResolver { value: "a| b|c ".to_string(), delimiter: '|' };
+        let resolver = ListSettingGroupResolver {
+            value: "a| b|c ".to_string(),
+            delimiter: '|',
+        };
         assert_eq!(resolver.parsed_groups(), vec!["a", "b", "c"]);
     }
 

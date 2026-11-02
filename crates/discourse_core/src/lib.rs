@@ -11,6 +11,7 @@ pub mod demons;
 pub mod email;
 pub mod file_store;
 pub mod logging;
+pub mod middleware_presence;
 pub mod onebox;
 pub mod pretty_text;
 pub mod rate_limiter;

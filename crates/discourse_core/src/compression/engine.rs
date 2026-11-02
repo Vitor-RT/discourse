@@ -1,9 +1,9 @@
-use std::path::Path;
-use super::strategy::{Strategy, CompressionError};
-use super::zip::Zip;
-use super::tar::Tar;
 use super::gzip::Gzip;
 use super::pipeline::Pipeline;
+use super::strategy::{CompressionError, Strategy};
+use super::tar::Tar;
+use super::zip::Zip;
+use std::path::Path;
 
 pub struct Engine {
     strategy: Box<dyn Strategy>,

@@ -139,14 +139,8 @@ impl DiscourseDiff {
             table.push("<tr>".to_string());
 
             if op_code == Operation::Common {
-                table.push(format!(
-                    "<td class=\"--previous\">{}</td>",
-                    line_diff[i].0
-                ));
-                table.push(format!(
-                    "<td class=\"--current\">{}</td>",
-                    line_diff[i].0
-                ));
+                table.push(format!("<td class=\"--previous\">{}</td>", line_diff[i].0));
+                table.push(format!("<td class=\"--current\">{}</td>", line_diff[i].0));
             } else {
                 let opposite_op_code = if op_code == Operation::Add {
                     Operation::Delete
@@ -244,7 +238,8 @@ impl DiscourseDiff {
     }
 
     fn tokenize_html_blocks(&self, text: &str) -> Vec<String> {
-        let re = Regex::new(r"(?s)<[a-zA-Z0-9]+.*?>.*?</[a-zA-Z0-9]+>|<[a-zA-Z0-9]+.*?/>|[^<]+").unwrap();
+        let re = Regex::new(r"(?s)<[a-zA-Z0-9]+.*?>.*?</[a-zA-Z0-9]+>|<[a-zA-Z0-9]+.*?/>|[^<]+")
+            .unwrap();
         re.find_iter(text).map(|m| m.as_str().to_string()).collect()
     }
 
@@ -281,7 +276,10 @@ impl DiscourseDiff {
         (left, right)
     }
 
-    fn generate_side_by_side_markdown(&self, diff: &[(String, Operation)]) -> (Vec<String>, Vec<String>) {
+    fn generate_side_by_side_markdown(
+        &self,
+        diff: &[(String, Operation)],
+    ) -> (Vec<String>, Vec<String>) {
         let mut left = Vec::new();
         let mut right = Vec::new();
         for (text, op) in diff {

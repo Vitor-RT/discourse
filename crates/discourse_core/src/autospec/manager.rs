@@ -114,7 +114,8 @@ impl Manager {
             if specs.is_empty() {
                 self.abort_runners();
             } else {
-                let new_specs: Vec<(String, String)> = specs.into_iter().map(|s| (s.clone(), s)).collect();
+                let new_specs: Vec<(String, String)> =
+                    specs.into_iter().map(|s| (s.clone(), s)).collect();
                 self.queue_specs(new_specs);
             }
         }

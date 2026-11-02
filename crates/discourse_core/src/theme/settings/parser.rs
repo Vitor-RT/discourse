@@ -47,7 +47,10 @@ impl ThemeSettingsParser {
         }
 
         for field in ["textarea", "resolve_group_membership", "refresh"] {
-            let val = raw_opts.get(field).and_then(|v| v.as_bool()).unwrap_or(false);
+            let val = raw_opts
+                .get(field)
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
             opts.insert(field.to_string(), Value::Bool(val));
         }
 
@@ -67,13 +70,19 @@ mod tests {
     #[test]
     fn test_extract_description_string() {
         let desc = json!("A description");
-        assert_eq!(ThemeSettingsParser::extract_description(&desc).unwrap(), "A description");
+        assert_eq!(
+            ThemeSettingsParser::extract_description(&desc).unwrap(),
+            "A description"
+        );
     }
 
     #[test]
     fn test_extract_description_hash() {
         let desc = json!({ "en": "A description" });
-        assert_eq!(ThemeSettingsParser::extract_description(&desc).unwrap(), "A description");
+        assert_eq!(
+            ThemeSettingsParser::extract_description(&desc).unwrap(),
+            "A description"
+        );
     }
 
     #[test]

@@ -11,7 +11,6 @@ lazy_static! {
         set.insert("gif");
         set
     };
-
     static ref SUPPORTED_IMAGES: HashSet<&'static str> = {
         let mut set = HashSet::new();
         set.insert("jpg");
@@ -27,13 +26,11 @@ lazy_static! {
         set.insert("jxl");
         set
     };
-
     static ref INLINE_IMAGES: HashSet<&'static str> = {
         let mut set = SUPPORTED_IMAGES.clone();
         set.remove("svg");
         set
     };
-
     static ref SUPPORTED_AUDIO: HashSet<&'static str> = {
         let mut set = HashSet::new();
         set.insert("mp3");
@@ -49,7 +46,6 @@ lazy_static! {
         set.insert("flac");
         set
     };
-
     static ref SUPPORTED_VIDEO: HashSet<&'static str> = {
         let mut set = HashSet::new();
         set.insert("mov");
@@ -127,6 +123,9 @@ mod tests {
         assert!(FileHelper::is_supported_video("video.mp4"));
         assert!(FileHelper::is_supported_audio("music.mp3"));
 
-        assert_eq!(FileHelper::sanitize_filename("my file?.png"), "my_file_.png");
+        assert_eq!(
+            FileHelper::sanitize_filename("my file?.png"),
+            "my_file_.png"
+        );
     }
 }

@@ -52,7 +52,7 @@ mod tests {
             "my_setting".into(),
             json!("default_val"),
             ThemeMock { id: 1 },
-            4
+            4,
         );
 
         assert_eq!(manager.name, "my_setting");

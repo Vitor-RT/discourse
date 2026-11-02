@@ -1,4 +1,5 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
+use std::collections::HashMap;
 
 use super::mounter::MounterError;
 use super::registry::Registry;

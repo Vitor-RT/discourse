@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
+use crate::admin_reports::layout_updater::AdminDashboardReportRecord;
 
-use super::layout_updater::{AdminDashboardReportRecord, AdminDashboardReportStore};
+use super::layout_updater::AdminDashboardReportStore;
 use super::registry::Registry;
 
 pub const DEFAULT_VISIBLE_CAP: usize = 20;

@@ -17,7 +17,7 @@ impl Sender {
         todo!("Send email using Mail crate or SMTP library");
     }
 
-    pub fn host_for(base_url: &str) -> String {
+    pub fn host_for(_base_url: &str) -> String {
         todo!("Determine host from base_url or site settings");
     }
 }

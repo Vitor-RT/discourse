@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::fs;
 use std::cell::RefCell;
 use chrono::Local;
@@ -84,7 +84,7 @@ impl<'a> BackupFileHandler<'a> {
     pub fn clean_up(&self) {
         if let Some(ref tmp_dir) = self.tmp_directory {
             self.log(&format!("Removing tmp '{}' directory...", tmp_dir));
-            if let Err(e) = fs::remove_dir_all(tmp_dir) {
+            if let Err(_e) = fs::remove_dir_all(tmp_dir) {
                 self.log(&format!("Something went wrong while removing the following tmp directory: {}", tmp_dir));
             }
         }

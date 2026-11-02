@@ -37,12 +37,12 @@ impl Manager {
     }
 
     pub fn stop_runners(&self) {
-        let mut runner = self.simple_runner.lock().unwrap();
+        let runner = self.simple_runner.lock().unwrap();
         runner.stop();
     }
 
     pub fn abort_runners(&self) {
-        let mut runner = self.simple_runner.lock().unwrap();
+        let runner = self.simple_runner.lock().unwrap();
         runner.abort();
     }
 
@@ -60,7 +60,7 @@ impl Manager {
                 q.remove(0)
             };
 
-            let mut runner = runner_arc.lock().unwrap();
+            let runner = runner_arc.lock().unwrap();
             runner.run(&format!("{} {}", file, spec));
         });
     }

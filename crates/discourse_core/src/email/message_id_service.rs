@@ -6,15 +6,15 @@ impl MessageIdService {
         todo!("Generate a UUID and combine with host_for(Discourse.base_url)");
     }
 
-    pub fn generate_or_use_existing(post_ids: Vec<i32>) -> Vec<String> {
+    pub fn generate_or_use_existing(_post_ids: Vec<i32>) -> Vec<String> {
         todo!("ActiveRecord and SQL updates for generating or fetching message ids");
     }
 
-    pub fn find_post_from_message_ids(message_ids: Vec<&str>) -> Option<i32> { // Returning an i32 instead of full Post object for simplicity in stub
+    pub fn find_post_from_message_ids(_message_ids: Vec<&str>) -> Option<i32> { // Returning an i32 instead of full Post object for simplicity in stub
         todo!("ActiveRecord lookups across Posts, EmailLog, IncomingEmail");
     }
 
-    pub fn discourse_generated_message_id(message_id: &str) -> bool {
+    pub fn discourse_generated_message_id(_message_id: &str) -> bool {
         todo!("Regex match for discourse/post/(\\d+)@host");
     }
 

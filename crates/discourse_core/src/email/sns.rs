@@ -1,7 +1,7 @@
 pub struct Sns;
 
 impl Sns {
-    pub fn authentic(raw: &str) -> bool {
+    pub fn authentic(_raw: &str) -> bool {
         // Implementation would involve AWS SNS signature verification.
         // For now, this is a stub as per step 4 strategy for complex domain logic.
         todo!("AWS SNS MessageVerifier implementation");

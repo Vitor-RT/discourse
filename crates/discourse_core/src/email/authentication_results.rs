@@ -3,7 +3,7 @@ pub struct AuthenticationResults {
 }
 
 impl AuthenticationResults {
-    pub fn new(headers: &str) -> Self {
+    pub fn new(_headers: &str) -> Self {
         todo!("Parse Authentication-Results headers");
     }
 

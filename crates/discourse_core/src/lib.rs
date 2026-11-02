@@ -12,6 +12,7 @@ pub mod email;
 pub mod file_store;
 pub mod logging;
 pub mod onebox;
+pub mod post_lifecycle;
 pub mod pretty_text;
 pub mod rate_limiter;
 pub mod reviewable;

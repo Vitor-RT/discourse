@@ -20,4 +20,5 @@ pub mod site_settings;
 pub mod svg_sprite;
 pub mod text_cleaner;
 pub mod text_utils;
+pub mod theme;
 pub mod types;

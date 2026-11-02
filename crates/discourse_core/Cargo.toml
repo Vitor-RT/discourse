@@ -30,6 +30,8 @@ any_ascii = "0.3"
 deadpool-redis = "0.14"
 redis = { version = "0.24", features = ["tokio-comp", "aio"] }
 tokio = { version = "1.35", features = ["full"] }
+serde_yaml = "0.9"
+uuid = { version = "1.6", features = ["v4"] }
 
 [dev-dependencies]
 tempfile = "3.2"

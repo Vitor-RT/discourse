@@ -13,7 +13,8 @@ pub struct ZipExporter {
 
 impl ZipExporter {
     pub fn new(theme: ThemeMock) -> Self {
-        let temp_folder = std::env::temp_dir().join(format!("discourse_theme_{}", uuid::Uuid::new_v4().simple()));
+        let temp_folder =
+            std::env::temp_dir().join(format!("discourse_theme_{}", uuid::Uuid::new_v4().simple()));
 
         let re = Regex::new(r"[^0-9a-z.\-]").unwrap();
         let mut export_name = re.replace_all(&theme.name.to_lowercase(), "-").to_string();
@@ -47,10 +48,10 @@ impl ZipExporter {
                     if depth < 0 {
                         return false;
                     }
-                },
+                }
                 std::path::Component::Normal(_) => {
                     depth += 1;
-                },
+                }
                 _ => continue,
             }
         }
@@ -64,21 +65,27 @@ mod tests {
 
     #[test]
     fn test_export_name_generation() {
-        let theme = ThemeMock { name: "My Awesome Theme!".to_string() };
+        let theme = ThemeMock {
+            name: "My Awesome Theme!".to_string(),
+        };
         let exporter = ZipExporter::new(theme);
         assert_eq!(exporter.export_name(), "discourse-my-awesome-theme-");
     }
 
     #[test]
     fn test_export_name_generation_already_discourse() {
-        let theme = ThemeMock { name: "discourse-cool-theme".to_string() };
+        let theme = ThemeMock {
+            name: "discourse-cool-theme".to_string(),
+        };
         let exporter = ZipExporter::new(theme);
         assert_eq!(exporter.export_name(), "discourse-cool-theme");
     }
 
     #[test]
     fn test_is_safe_path() {
-        let theme = ThemeMock { name: "test".to_string() };
+        let theme = ThemeMock {
+            name: "test".to_string(),
+        };
         let exporter = ZipExporter::new(theme);
 
         assert!(exporter.is_safe_path(Path::new("some/normal/path.scss")));

@@ -32,6 +32,8 @@ redis = { version = "0.24", features = ["tokio-comp", "aio"] }
 tokio = { version = "1.35", features = ["full"] }
 serde_yaml = "0.9"
 uuid = { version = "1.6", features = ["v4"] }
+sha2 = "0.11.1"
+hex = "0.4.3"
 
 [dev-dependencies]
 tempfile = "3.2"

@@ -1,7 +1,7 @@
+use super::strategy::{CompressionError, Strategy};
 use std::fs::File;
 use std::path::Path;
 use tar::{Archive, Builder};
-use super::strategy::{Strategy, CompressionError};
 
 pub struct Tar;
 

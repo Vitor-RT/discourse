@@ -18,7 +18,11 @@ pub struct AdminDashboardReportRecord {
 
 pub trait AdminDashboardReportStore {
     fn find_by(&self, source: &str, identifier: &str) -> Option<AdminDashboardReportRecord>;
-    fn create(&mut self, source: String, identifier: String) -> Result<AdminDashboardReportRecord, MounterError>;
+    fn create(
+        &mut self,
+        source: String,
+        identifier: String,
+    ) -> Result<AdminDashboardReportRecord, MounterError>;
     fn count(&self) -> usize;
     fn delete_all(&mut self, source: &str, identifiers: &[String]);
     fn create_layout_record(
@@ -53,7 +57,10 @@ impl<'a, S: AdminDashboardReportStore> LayoutUpdater<'a, S> {
                 .provider_for(source_name)
                 .ok_or(MounterError::InvalidAccess)?;
 
-            let identifiers: Vec<String> = source_items.iter().map(|item| item.identifier.clone()).collect();
+            let identifiers: Vec<String> = source_items
+                .iter()
+                .map(|item| item.identifier.clone())
+                .collect();
             let accessible = provider.accessible_report_identifiers(&identifiers, user);
 
             for item in source_items {
@@ -64,7 +71,10 @@ impl<'a, S: AdminDashboardReportStore> LayoutUpdater<'a, S> {
         }
 
         for (source_name, source_items) in grouped {
-            let identifiers: Vec<String> = source_items.iter().map(|item| item.identifier.clone()).collect();
+            let identifiers: Vec<String> = source_items
+                .iter()
+                .map(|item| item.identifier.clone())
+                .collect();
             self.store.delete_all(&source_name, &identifiers);
 
             for (index, item) in source_items.into_iter().enumerate() {
@@ -84,8 +94,8 @@ impl<'a, S: AdminDashboardReportStore> LayoutUpdater<'a, S> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::source_provider::SourceProvider;
+    use super::*;
 
     struct DummyProvider {
         source: String,
@@ -125,15 +135,17 @@ mod tests {
                 })
         }
 
-        fn create(&mut self, source: String, identifier: String) -> Result<AdminDashboardReportRecord, MounterError> {
+        fn create(
+            &mut self,
+            source: String,
+            identifier: String,
+        ) -> Result<AdminDashboardReportRecord, MounterError> {
             let rec = AdminDashboardReportRecord {
                 source: source.clone(),
                 identifier: identifier.clone(),
             };
-            self.records.push(AdminDashboardReportRecord {
-                source,
-                identifier,
-            });
+            self.records
+                .push(AdminDashboardReportRecord { source, identifier });
             Ok(rec)
         }
 
@@ -142,7 +154,8 @@ mod tests {
         }
 
         fn delete_all(&mut self, source: &str, identifiers: &[String]) {
-            self.records.retain(|r| !(r.source == source && identifiers.contains(&r.identifier)));
+            self.records
+                .retain(|r| !(r.source == source && identifiers.contains(&r.identifier)));
         }
 
         fn create_layout_record(

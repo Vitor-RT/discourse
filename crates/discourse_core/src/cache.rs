@@ -24,7 +24,8 @@ impl Cache {
     pub fn keys(&self, pattern: &str) -> Vec<String> {
         let prefix = format!("{}:", self.namespace);
         let store = self.store.read().unwrap();
-        store.keys()
+        store
+            .keys()
             .filter(|k| k.starts_with(&prefix))
             .filter(|k| {
                 if pattern == "*" {
@@ -32,7 +33,7 @@ impl Cache {
                 } else {
                     let suffix = &k[prefix.len()..];
                     if pattern.ends_with('*') {
-                        suffix.starts_with(&pattern[..pattern.len()-1])
+                        suffix.starts_with(&pattern[..pattern.len() - 1])
                     } else {
                         suffix == pattern
                     }
@@ -105,7 +106,10 @@ impl Cache {
     fn write_entry(&self, key: &str, value: &str, expires_in: Option<Duration>) {
         let expiry = expires_in.unwrap_or(MAX_CACHE_AGE);
         let mut store = self.store.write().unwrap();
-        store.insert(key.to_string(), (value.to_string(), Instant::now() + expiry));
+        store.insert(
+            key.to_string(),
+            (value.to_string(), Instant::now() + expiry),
+        );
     }
 }
 
@@ -142,7 +146,12 @@ impl DistributedCache {
         value
     }
 
-    pub fn defer_get_set_bulk<F, K>(&self, ks: &[String], key_blk: K, blk: F) -> HashMap<String, String>
+    pub fn defer_get_set_bulk<F, K>(
+        &self,
+        ks: &[String],
+        key_blk: K,
+        blk: F,
+    ) -> HashMap<String, String>
     where
         K: Fn(&str) -> String,
         F: FnOnce(&[String]) -> Vec<String>,

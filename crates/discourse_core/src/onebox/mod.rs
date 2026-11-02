@@ -1,12 +1,12 @@
-pub mod sanitize_config;
-pub mod status_check;
-pub mod preview;
-pub mod matcher;
+pub mod domain_checker;
 pub mod engine;
 pub mod helpers;
-pub mod domain_checker;
-pub mod view;
 pub mod layout;
+pub mod matcher;
+pub mod preview;
+pub mod sanitize_config;
+pub mod status_check;
+pub mod view;
 
 pub struct OneboxOptions {
     pub connect_timeout: u64,
@@ -62,7 +62,10 @@ mod tests {
         assert_eq!(options.timeout, 10);
         assert_eq!(options.max_download_kb, 2048);
         assert_eq!(options.allowed_ports, vec![80, 443]);
-        assert_eq!(options.allowed_schemes, vec!["http".to_string(), "https".to_string()]);
+        assert_eq!(
+            options.allowed_schemes,
+            vec!["http".to_string(), "https".to_string()]
+        );
         assert_eq!(options.redirect_limit, 5);
     }
 }

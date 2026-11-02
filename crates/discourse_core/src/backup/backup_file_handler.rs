@@ -1,10 +1,10 @@
-use std::path::{Path, PathBuf};
-use std::fs;
-use std::cell::RefCell;
-use chrono::Local;
-use url::Url;
-use std::process::Command;
 use crate::backup::logger::Logger;
+use chrono::Local;
+use std::cell::RefCell;
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::process::Command;
+use url::Url;
 
 pub struct BackupFileHandler<'a> {
     logger: &'a RefCell<Logger>,
@@ -30,13 +30,19 @@ impl<'a> BackupFileHandler<'a> {
         root_tmp_directory: String,
         location: Option<String>,
     ) -> Self {
-        let (url, actual_filename) = if filename.starts_with("http://") || filename.starts_with("https://") {
-            let parsed_url = Url::parse(&filename).unwrap();
-            let name = parsed_url.path_segments().unwrap().last().unwrap().to_string();
-            (Some(filename), name)
-        } else {
-            (None, filename)
-        };
+        let (url, actual_filename) =
+            if filename.starts_with("http://") || filename.starts_with("https://") {
+                let parsed_url = Url::parse(&filename).unwrap();
+                let name = parsed_url
+                    .path_segments()
+                    .unwrap()
+                    .last()
+                    .unwrap()
+                    .to_string();
+                (Some(filename), name)
+            } else {
+                (None, filename)
+            };
 
         let is_archive = !actual_filename.ends_with(".sql.gz");
 
@@ -85,7 +91,10 @@ impl<'a> BackupFileHandler<'a> {
         if let Some(ref tmp_dir) = self.tmp_directory {
             self.log(&format!("Removing tmp '{}' directory...", tmp_dir));
             if let Err(e) = fs::remove_dir_all(tmp_dir) {
-                self.log(&format!("Something went wrong while removing the following tmp directory: {}", tmp_dir));
+                self.log(&format!(
+                    "Something went wrong while removing the following tmp directory: {}",
+                    tmp_dir
+                ));
             }
         }
     }
@@ -155,11 +164,11 @@ impl<'a> BackupFileHandler<'a> {
         self.log("Unzipping archive, this may take a while...");
         let mut cmd = Command::new("tar");
         cmd.arg("--extract")
-           .arg("--gzip")
-           .arg("--file")
-           .arg(self.archive_path.as_ref().unwrap())
-           .arg("--directory")
-           .arg(self.tmp_directory.as_ref().unwrap());
+            .arg("--gzip")
+            .arg("--file")
+            .arg(self.archive_path.as_ref().unwrap())
+            .arg("--directory")
+            .arg(self.tmp_directory.as_ref().unwrap());
 
         for arg in path_transformation {
             cmd.arg(arg);

@@ -22,7 +22,9 @@ mod tests {
 
     #[test]
     fn test_valid_sha1() {
-        assert!(UploadRecovery::valid_sha1("da39a3ee5e6b4b0d3255bfef95601890afd80709"));
+        assert!(UploadRecovery::valid_sha1(
+            "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+        ));
         assert!(!UploadRecovery::valid_sha1("short"));
         assert!(!UploadRecovery::valid_sha1(""));
     }

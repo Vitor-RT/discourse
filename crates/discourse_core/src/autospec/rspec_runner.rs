@@ -1,7 +1,7 @@
+use regex::Regex;
 use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
-use regex::Regex;
 
 use super::base_runner::BaseRunner;
 
@@ -41,36 +41,99 @@ impl RspecRunner {
             None => None,
         };
         if let Ok(reg) = Regex::new(&pattern) {
-            self.watchers.push(WatcherRule { pattern: reg, callback });
+            self.watchers.push(WatcherRule {
+                pattern: reg,
+                callback,
+            });
         }
     }
 
     pub fn watch_regex(&mut self, pattern: &str, callback: Option<CallbackFn>) {
         if let Ok(reg) = Regex::new(pattern) {
-            self.watchers.push(WatcherRule { pattern: reg, callback });
+            self.watchers.push(WatcherRule {
+                pattern: reg,
+                callback,
+            });
         }
     }
 
     pub fn default_watchers(&mut self) {
-        self.watch_regex(r"^lib/(.+)\.rb$", Some(Box::new(|m: &regex::Captures| format!("spec/components/{}_spec.rb", &m[1]))));
-        self.watch_regex(r"^app/(.+)\.rb$", Some(Box::new(|m: &regex::Captures| format!("spec/{}_spec.rb", &m[1]))));
-        self.watch_regex(r"^app/(.+)(\.erb|\.haml)$", Some(Box::new(|m: &regex::Captures| format!("spec/{}{}_spec.rb", &m[1], &m[2]))));
+        self.watch_regex(
+            r"^lib/(.+)\.rb$",
+            Some(Box::new(|m: &regex::Captures| {
+                format!("spec/components/{}_spec.rb", &m[1])
+            })),
+        );
+        self.watch_regex(
+            r"^app/(.+)\.rb$",
+            Some(Box::new(|m: &regex::Captures| {
+                format!("spec/{}_spec.rb", &m[1])
+            })),
+        );
+        self.watch_regex(
+            r"^app/(.+)(\.erb|\.haml)$",
+            Some(Box::new(|m: &regex::Captures| {
+                format!("spec/{}{}_spec.rb", &m[1], &m[2])
+            })),
+        );
         self.watch_regex(r"^spec/.+_spec\.rb$", None);
-        self.watch_regex(r"^spec/support/.+\.rb$", Some(Box::new(|_| "spec".to_string())));
+        self.watch_regex(
+            r"^spec/support/.+\.rb$",
+            Some(Box::new(|_| "spec".to_string())),
+        );
 
-        self.watch_exact("app/controllers/application_controller.rb", Some("spec/requests"));
-        self.watch_regex(r"app/controllers/(.+).rb", Some(Box::new(|m: &regex::Captures| format!("spec/requests/{}_spec.rb", &m[1]))));
-        self.watch_regex(r"^app/views/(.+)/.+\.(erb|haml)$", Some(Box::new(|m: &regex::Captures| format!("spec/requests/{}_spec.rb", &m[1]))));
+        self.watch_exact(
+            "app/controllers/application_controller.rb",
+            Some("spec/requests"),
+        );
+        self.watch_regex(
+            r"app/controllers/(.+).rb",
+            Some(Box::new(|m: &regex::Captures| {
+                format!("spec/requests/{}_spec.rb", &m[1])
+            })),
+        );
+        self.watch_regex(
+            r"^app/views/(.+)/.+\.(erb|haml)$",
+            Some(Box::new(|m: &regex::Captures| {
+                format!("spec/requests/{}_spec.rb", &m[1])
+            })),
+        );
 
-        self.watch_regex(r"^spec/fabricators/.+_fabricator\.rb$", Some(Box::new(|_| "spec".to_string())));
+        self.watch_regex(
+            r"^spec/fabricators/.+_fabricator\.rb$",
+            Some(Box::new(|_| "spec".to_string())),
+        );
 
-        self.watch_regex(r"^frontend/pretty-text/.*\.js\.es6$", Some(Box::new(|_| "spec/components/pretty_text_spec.rb".to_string())));
-        self.watch_regex(r"^plugins/.*/discourse-markdown/.*\.js\.es6$", Some(Box::new(|_| "spec/components/pretty_text_spec.rb".to_string())));
+        self.watch_regex(
+            r"^frontend/pretty-text/.*\.js\.es6$",
+            Some(Box::new(|_| {
+                "spec/components/pretty_text_spec.rb".to_string()
+            })),
+        );
+        self.watch_regex(
+            r"^plugins/.*/discourse-markdown/.*\.js\.es6$",
+            Some(Box::new(|_| {
+                "spec/components/pretty_text_spec.rb".to_string()
+            })),
+        );
 
         self.watch_regex(r"^plugins/.*/spec/.*\.rb", None);
-        self.watch_regex(r"^(plugins/.*/)plugin\.rb", Some(Box::new(|m: &regex::Captures| format!("{}spec", &m[1]))));
-        self.watch_regex(r"^(plugins/.*)/(lib|app)", Some(Box::new(|m: &regex::Captures| format!("{}/spec/integration", &m[1]))));
-        self.watch_regex(r"^(plugins/.*)/lib/(.*)\.rb", Some(Box::new(|m: &regex::Captures| format!("{}/spec/lib/{}_spec.rb", &m[1], &m[2]))));
+        self.watch_regex(
+            r"^(plugins/.*/)plugin\.rb",
+            Some(Box::new(|m: &regex::Captures| format!("{}spec", &m[1]))),
+        );
+        self.watch_regex(
+            r"^(plugins/.*)/(lib|app)",
+            Some(Box::new(|m: &regex::Captures| {
+                format!("{}/spec/integration", &m[1])
+            })),
+        );
+        self.watch_regex(
+            r"^(plugins/.*)/lib/(.*)\.rb",
+            Some(Box::new(|m: &regex::Captures| {
+                format!("{}/spec/lib/{}_spec.rb", &m[1], &m[2])
+            })),
+        );
 
         self.watch_exact("spec/rails_helper.rb", None);
         self.watch_regex(r"config/.+\.rb", None);

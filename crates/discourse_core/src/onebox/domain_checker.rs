@@ -5,7 +5,8 @@ impl DomainChecker {
         let normalized_hostname = hostname.to_lowercase();
         blocked_domains.iter().any(|blocked| {
             let normalized_blocked = blocked.to_lowercase();
-            normalized_hostname == normalized_blocked || normalized_hostname.ends_with(&format!(".{}", normalized_blocked))
+            normalized_hostname == normalized_blocked
+                || normalized_hostname.ends_with(&format!(".{}", normalized_blocked))
         })
     }
 }

@@ -10,7 +10,8 @@ impl MessageIdService {
         todo!("ActiveRecord and SQL updates for generating or fetching message ids");
     }
 
-    pub fn find_post_from_message_ids(message_ids: Vec<&str>) -> Option<i32> { // Returning an i32 instead of full Post object for simplicity in stub
+    pub fn find_post_from_message_ids(message_ids: Vec<&str>) -> Option<i32> {
+        // Returning an i32 instead of full Post object for simplicity in stub
         todo!("ActiveRecord lookups across Posts, EmailLog, IncomingEmail");
     }
 
@@ -28,7 +29,10 @@ impl MessageIdService {
 
     pub fn message_id_clean(message_id: &str) -> String {
         if !message_id.is_empty() && Self::is_message_id_rfc(message_id) {
-            message_id.trim_start_matches('<').trim_end_matches('>').to_string()
+            message_id
+                .trim_start_matches('<')
+                .trim_end_matches('>')
+                .to_string()
         } else {
             message_id.to_string()
         }
@@ -55,14 +59,26 @@ mod tests {
 
     #[test]
     fn test_message_id_rfc_format() {
-        assert_eq!(MessageIdService::message_id_rfc_format("test@example.com"), "<test@example.com>");
-        assert_eq!(MessageIdService::message_id_rfc_format("<test@example.com>"), "<test@example.com>");
+        assert_eq!(
+            MessageIdService::message_id_rfc_format("test@example.com"),
+            "<test@example.com>"
+        );
+        assert_eq!(
+            MessageIdService::message_id_rfc_format("<test@example.com>"),
+            "<test@example.com>"
+        );
         assert_eq!(MessageIdService::message_id_rfc_format(""), "");
     }
 
     #[test]
     fn test_message_id_clean() {
-        assert_eq!(MessageIdService::message_id_clean("<test@example.com>"), "test@example.com");
-        assert_eq!(MessageIdService::message_id_clean("test@example.com"), "test@example.com");
+        assert_eq!(
+            MessageIdService::message_id_clean("<test@example.com>"),
+            "test@example.com"
+        );
+        assert_eq!(
+            MessageIdService::message_id_clean("test@example.com"),
+            "test@example.com"
+        );
     }
 }

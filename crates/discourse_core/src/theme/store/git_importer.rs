@@ -12,7 +12,8 @@ pub struct GitImporter {
 
 impl GitImporter {
     pub fn new(url: String, private_key: Option<String>, branch: Option<String>) -> Self {
-        let temp_folder = std::env::temp_dir().join(format!("discourse_theme_{}", uuid::Uuid::new_v4().simple()));
+        let temp_folder =
+            std::env::temp_dir().join(format!("discourse_theme_{}", uuid::Uuid::new_v4().simple()));
         GitImporter {
             url,
             private_key,
@@ -69,14 +70,18 @@ mod tests {
             "git".into(),
             "clone".into(),
             "https://example.com/repo.git".into(),
-            importer.temp_folder().to_string_lossy().to_string()
+            importer.temp_folder().to_string_lossy().to_string(),
         ];
         assert_eq!(args, expected);
     }
 
     #[test]
     fn test_clone_args_with_branch() {
-        let importer = GitImporter::new("https://example.com/repo.git".into(), None, Some("main".into()));
+        let importer = GitImporter::new(
+            "https://example.com/repo.git".into(),
+            None,
+            Some("main".into()),
+        );
         let args = importer.clone_args("https://example.com/repo.git", &HashMap::new());
         let expected: Vec<String> = vec![
             "git".into(),
@@ -85,7 +90,7 @@ mod tests {
             "-b".into(),
             "main".into(),
             "https://example.com/repo.git".into(),
-            importer.temp_folder().to_string_lossy().to_string()
+            importer.temp_folder().to_string_lossy().to_string(),
         ];
         assert_eq!(args, expected);
     }

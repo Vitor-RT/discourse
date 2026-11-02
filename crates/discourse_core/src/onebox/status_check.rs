@@ -1,5 +1,5 @@
-use std::time::Duration;
 use reqwest::blocking::Client;
+use std::time::Duration;
 
 pub struct StatusCheck {
     url: String,

@@ -16,7 +16,12 @@ impl Layout {
                     if let Ok(uri) = Url::parse(link) {
                         record.insert(
                             "image".to_string(),
-                            format!("{}://{}{}", uri.scheme(), uri.host_str().unwrap_or(""), image)
+                            format!(
+                                "{}://{}{}",
+                                uri.scheme(),
+                                uri.host_str().unwrap_or(""),
+                                image
+                            ),
                         );
                     }
                 }

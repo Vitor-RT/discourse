@@ -5,10 +5,10 @@ pub struct ThemeSettingsValidator;
 impl ThemeSettingsValidator {
     pub fn is_valid_value_type(value: &Value, type_id: u8) -> bool {
         match type_id {
-            1 => value.is_i64(), // integer
+            1 => value.is_i64(),                   // integer
             2 => value.is_i64() || value.is_f64(), // float
-            3 => value.is_boolean(), // bool
-            4 | 5 => value.is_string(), // list, icon
+            3 => value.is_boolean(),               // bool
+            4 | 5 => value.is_string(),            // list, icon
             6 => {
                 // objects
                 if let Some(arr) = value.as_array() {
@@ -16,12 +16,16 @@ impl ThemeSettingsValidator {
                 } else {
                     false
                 }
-            },
+            }
             _ => true, // default
         }
     }
 
-    pub fn validate_value_in_range_int(value: i64, min: Option<i64>, max: Option<i64>) -> Vec<String> {
+    pub fn validate_value_in_range_int(
+        value: i64,
+        min: Option<i64>,
+        max: Option<i64>,
+    ) -> Vec<String> {
         let mut errors = Vec::new();
         if let Some(min_val) = min {
             if let Some(max_val) = max {
@@ -54,10 +58,19 @@ mod tests {
 
         assert!(ThemeSettingsValidator::is_valid_value_type(&json!(true), 3));
 
-        assert!(ThemeSettingsValidator::is_valid_value_type(&json!("string"), 4));
+        assert!(ThemeSettingsValidator::is_valid_value_type(
+            &json!("string"),
+            4
+        ));
 
-        assert!(ThemeSettingsValidator::is_valid_value_type(&json!([{"a": 1}]), 6));
-        assert!(!ThemeSettingsValidator::is_valid_value_type(&json!(["a"]), 6));
+        assert!(ThemeSettingsValidator::is_valid_value_type(
+            &json!([{"a": 1}]),
+            6
+        ));
+        assert!(!ThemeSettingsValidator::is_valid_value_type(
+            &json!(["a"]),
+            6
+        ));
     }
 
     #[test]

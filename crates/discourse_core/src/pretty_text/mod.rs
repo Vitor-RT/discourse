@@ -6,8 +6,8 @@ use regex::Regex;
 
 lazy_static! {
     pub static ref DANGEROUS_BIDI_CHARACTERS: Vec<&'static str> = vec![
-        "\u{202A}", "\u{202B}", "\u{202C}", "\u{202D}", "\u{202E}",
-        "\u{2066}", "\u{2067}", "\u{2068}", "\u{2069}",
+        "\u{202A}", "\u{202B}", "\u{202C}", "\u{202D}", "\u{202E}", "\u{2066}", "\u{2067}",
+        "\u{2068}", "\u{2069}",
     ];
     pub static ref DANGEROUS_BIDI_REGEXP: Regex = {
         let pattern = DANGEROUS_BIDI_CHARACTERS.join("|");

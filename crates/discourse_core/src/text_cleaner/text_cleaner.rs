@@ -140,26 +140,38 @@ mod tests {
 
     #[test]
     fn test_deduplicate_exclamation_marks() {
-        let opts = TextCleanerOptions { deduplicate_exclamation_marks: true, ..Default::default() };
+        let opts = TextCleanerOptions {
+            deduplicate_exclamation_marks: true,
+            ..Default::default()
+        };
         assert_eq!(TextCleaner::clean("hello!!!!", &opts), "hello!");
     }
 
     #[test]
     fn test_deduplicate_question_marks() {
-        let opts = TextCleanerOptions { deduplicate_question_marks: true, ..Default::default() };
+        let opts = TextCleanerOptions {
+            deduplicate_question_marks: true,
+            ..Default::default()
+        };
         assert_eq!(TextCleaner::clean("what?????", &opts), "what?");
     }
 
     #[test]
     fn test_replace_all_upper_case() {
-        let opts = TextCleanerOptions { replace_all_upper_case: true, ..Default::default() };
+        let opts = TextCleanerOptions {
+            replace_all_upper_case: true,
+            ..Default::default()
+        };
         assert_eq!(TextCleaner::clean("HELLO", &opts), "hello");
         assert_eq!(TextCleaner::clean("HELLo", &opts), "HELLo");
     }
 
     #[test]
     fn test_capitalize_first_letter() {
-        let opts = TextCleanerOptions { capitalize_first_letter: true, ..Default::default() };
+        let opts = TextCleanerOptions {
+            capitalize_first_letter: true,
+            ..Default::default()
+        };
         assert_eq!(TextCleaner::clean("hello world", &opts), "Hello world");
         assert_eq!(TextCleaner::clean("Hello world", &opts), "Hello world");
         assert_eq!(TextCleaner::clean("hEllo world", &opts), "hEllo world");
@@ -167,7 +179,10 @@ mod tests {
 
     #[test]
     fn test_remove_all_periods_from_the_end() {
-        let opts = TextCleanerOptions { remove_all_periods_from_the_end: true, ..Default::default() };
+        let opts = TextCleanerOptions {
+            remove_all_periods_from_the_end: true,
+            ..Default::default()
+        };
         assert_eq!(TextCleaner::clean("hello...", &opts), "hello");
         assert_eq!(TextCleaner::clean("hello...  ", &opts), "hello  ");
         assert_eq!(TextCleaner::clean("hello", &opts), "hello");
@@ -175,7 +190,10 @@ mod tests {
 
     #[test]
     fn test_remove_extraneous_space() {
-        let opts = TextCleanerOptions { remove_extraneous_space: true, ..Default::default() };
+        let opts = TextCleanerOptions {
+            remove_extraneous_space: true,
+            ..Default::default()
+        };
         assert_eq!(TextCleaner::clean("hello !", &opts), "hello!");
         assert_eq!(TextCleaner::clean("what ?", &opts), "what?");
         assert_eq!(TextCleaner::clean("what ?  ", &opts), "what?  ");
@@ -183,24 +201,39 @@ mod tests {
 
     #[test]
     fn test_fixes_interior_spaces() {
-        let opts = TextCleanerOptions { fixes_interior_spaces: true, ..Default::default() };
+        let opts = TextCleanerOptions {
+            fixes_interior_spaces: true,
+            ..Default::default()
+        };
         assert_eq!(TextCleaner::clean("hello   world", &opts), "hello world");
     }
 
     #[test]
     fn test_strip_whitespaces() {
-        let opts = TextCleanerOptions { strip_whitespaces: true, ..Default::default() };
+        let opts = TextCleanerOptions {
+            strip_whitespaces: true,
+            ..Default::default()
+        };
         assert_eq!(TextCleaner::clean("  hello  ", &opts), "hello");
     }
 
     #[test]
     fn test_strip_zero_width_spaces() {
-        let opts = TextCleanerOptions { strip_zero_width_spaces: true, ..Default::default() };
-        assert_eq!(TextCleaner::clean("hello\u{200B}world", &opts), "helloworld");
+        let opts = TextCleanerOptions {
+            strip_zero_width_spaces: true,
+            ..Default::default()
+        };
+        assert_eq!(
+            TextCleaner::clean("hello\u{200B}world", &opts),
+            "helloworld"
+        );
     }
 
     #[test]
     fn test_normalize_whitespaces() {
-        assert_eq!(TextCleaner::normalize_whitespaces("hello\u{00A0}world"), "hello world");
+        assert_eq!(
+            TextCleaner::normalize_whitespaces("hello\u{00A0}world"),
+            "hello world"
+        );
     }
 }

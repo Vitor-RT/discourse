@@ -219,19 +219,23 @@ mod tests {
 
         let mut view_groups = HashSet::new();
         view_groups.insert(1);
-        acl.group_permissions.insert("view".to_string(), view_groups);
+        acl.group_permissions
+            .insert("view".to_string(), view_groups);
 
         let mut edit_groups = HashSet::new();
         edit_groups.insert(1);
-        acl.group_permissions.insert("edit".to_string(), edit_groups);
+        acl.group_permissions
+            .insert("edit".to_string(), edit_groups);
 
         let mut owner_groups = HashSet::new();
         owner_groups.insert(22);
-        acl.group_permissions.insert("owner".to_string(), owner_groups);
+        acl.group_permissions
+            .insert("owner".to_string(), owner_groups);
 
         let mut manage_users = HashSet::new();
         manage_users.insert(2);
-        acl.user_permissions.insert("manage".to_string(), manage_users);
+        acl.user_permissions
+            .insert("manage".to_string(), manage_users);
 
         let mut view_users = HashSet::new();
         view_users.insert(99);
@@ -239,7 +243,8 @@ mod tests {
 
         let mut owner_users = HashSet::new();
         owner_users.insert(3);
-        acl.user_permissions.insert("owner".to_string(), owner_users);
+        acl.user_permissions
+            .insert("owner".to_string(), owner_users);
 
         acl
     }

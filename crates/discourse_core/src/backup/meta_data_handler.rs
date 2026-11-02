@@ -1,10 +1,10 @@
-use std::path::Path;
-use std::fs;
-use serde::{Deserialize, Serialize};
-use thiserror::Error;
-use regex::Regex;
-use std::cell::RefCell;
 use crate::backup::logger::Logger;
+use regex::Regex;
+use serde::{Deserialize, Serialize};
+use std::cell::RefCell;
+use std::fs;
+use std::path::Path;
+use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum MetaDataError {
@@ -53,7 +53,8 @@ pub struct MetaDataHandler<'a> {
 
 // Custom parser to split version strings accurately
 fn parse_version(version: &str) -> Vec<u32> {
-    version.split(|c: char| !c.is_numeric())
+    version
+        .split(|c: char| !c.is_numeric())
         .filter_map(|s| s.parse::<u32>().ok())
         .collect()
 }
@@ -100,12 +101,24 @@ impl<'a> MetaDataHandler<'a> {
         let metadata = self.extract_metadata()?;
 
         self.log("Validating metadata...");
-        self.log(&format!("  Current database version: {}", self.current_database_version));
-        self.log(&format!("  Backup from database version: {}", metadata.version));
-        self.log(&format!("  Current Discourse version: {}", self.current_discourse_version));
+        self.log(&format!(
+            "  Current database version: {}",
+            self.current_database_version
+        ));
+        self.log(&format!(
+            "  Backup from database version: {}",
+            metadata.version
+        ));
+        self.log(&format!(
+            "  Current Discourse version: {}",
+            self.current_discourse_version
+        ));
 
         let backup_discourse_version = metadata.discourse_version.as_deref().unwrap_or("(unknown)");
-        self.log(&format!("  Backup from Discourse version: {}", backup_discourse_version));
+        self.log(&format!(
+            "  Backup from Discourse version: {}",
+            backup_discourse_version
+        ));
 
         if let Some(ref dv) = metadata.discourse_version {
             if version_greater_than(dv, &self.current_discourse_version) {
@@ -155,9 +168,9 @@ impl<'a> MetaDataHandler<'a> {
             let database_version_str = caps.name("database_version").unwrap().as_str();
             let version = database_version_str.parse::<usize>().unwrap();
 
-            let discourse_version = caps.name("discourse_version").map(|m| {
-                m.as_str().replace("-", ".").replace(".latest", "-latest")
-            });
+            let discourse_version = caps
+                .name("discourse_version")
+                .map(|m| m.as_str().replace("-", ".").replace(".latest", "-latest"));
 
             Ok(MetaData {
                 version,
@@ -169,11 +182,13 @@ impl<'a> MetaDataHandler<'a> {
     }
 
     fn load_metadata_file(&self, path: &Path) -> Result<MetaData, MetaDataError> {
-        let content = fs::read_to_string(path).map_err(|e| MetaDataError::IoError(e.to_string()))?;
+        let content =
+            fs::read_to_string(path).map_err(|e| MetaDataError::IoError(e.to_string()))?;
         if content.trim().is_empty() {
             return Err(MetaDataError::LoadFailed);
         }
-        let metadata: MetaData = serde_json::from_str(&content).map_err(|e| MetaDataError::JsonError(e.to_string()))?;
+        let metadata: MetaData =
+            serde_json::from_str(&content).map_err(|e| MetaDataError::JsonError(e.to_string()))?;
         Ok(metadata)
     }
 }

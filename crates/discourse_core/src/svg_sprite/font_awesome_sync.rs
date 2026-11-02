@@ -314,8 +314,9 @@ mod tests {
                         "names": ["handshake-simple"]
                     }
                 }
-            }"#
-        ).unwrap();
+            }"#,
+        )
+        .unwrap();
 
         // Mock solid.svg
         fs::write(
@@ -327,8 +328,9 @@ mod tests {
 <symbol id="new-icon" viewBox="0 0 100 100">
 <path d="M456"/>
 </symbol>
-</svg>"#
-        ).unwrap();
+</svg>"#,
+        )
+        .unwrap();
 
         // Other required styles (can be empty)
         fs::write(sprites_dir.join("regular.svg"), "<svg></svg>").unwrap();
@@ -342,8 +344,9 @@ mod tests {
             r#"<svg>
 <symbol id="handshake-simple" viewBox="0 0 576 512"><path d="M000"/></symbol>
 <symbol id="removed-icon" viewBox="0 0 50 50"><path d="M999"/></symbol>
-</svg>"#
-        ).unwrap();
+</svg>"#,
+        )
+        .unwrap();
 
         let sync = FontAwesomeSync::new(package_path(&package_dir), vendor_path(&vendor_dir));
 
@@ -352,12 +355,15 @@ mod tests {
         sync.write().unwrap();
 
         // Verify output
-        let current_solid = fs::read_to_string(vendor_dir.path().join(CURRENT_DIRECTORY).join("solid.svg")).unwrap();
+        let current_solid =
+            fs::read_to_string(vendor_dir.path().join(CURRENT_DIRECTORY).join("solid.svg"))
+                .unwrap();
         assert!(current_solid.contains(r#"id="handshake""#));
         assert!(current_solid.contains(r#"id="new-icon""#));
         assert!(!current_solid.contains("fill=")); // fill should be removed
 
-        let legacy_solid = fs::read_to_string(vendor_dir.path().join(LEGACY_DIRECTORY).join("solid.svg")).unwrap();
+        let legacy_solid =
+            fs::read_to_string(vendor_dir.path().join(LEGACY_DIRECTORY).join("solid.svg")).unwrap();
         assert!(legacy_solid.contains("handshake-simple: renamed to handshake"));
         assert!(legacy_solid.contains(r#"id="handshake-simple""#));
         assert!(legacy_solid.contains("M123")); // updated artwork

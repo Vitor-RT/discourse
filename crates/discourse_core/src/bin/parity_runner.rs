@@ -1,9 +1,9 @@
-use discourse_core::types::base62;
-use discourse_core::types::color_math;
-use discourse_core::text_utils::discourse_diff::DiscourseDiff;
 use discourse_core::browser::crawler_detection::CrawlerDetection;
 use discourse_core::browser::detection::Browser;
 use discourse_core::file_store::file_helper::FileHelper;
+use discourse_core::text_utils::discourse_diff::DiscourseDiff;
+use discourse_core::types::base62;
+use discourse_core::types::color_math;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();

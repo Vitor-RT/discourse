@@ -43,13 +43,27 @@ pub trait BackupStore {
         false
     }
 
-    fn file(&self, filename: &str, include_download_source: bool) -> Result<Option<BackupFile>, BackupStoreError>;
+    fn file(
+        &self,
+        filename: &str,
+        include_download_source: bool,
+    ) -> Result<Option<BackupFile>, BackupStoreError>;
 
     fn delete_file(&self, filename: &str) -> Result<(), BackupStoreError>;
 
-    fn download_file(&self, filename: &str, destination: &str, failure_message: Option<&str>) -> Result<(), BackupStoreError>;
+    fn download_file(
+        &self,
+        filename: &str,
+        destination: &str,
+        failure_message: Option<&str>,
+    ) -> Result<(), BackupStoreError>;
 
-    fn upload_file(&self, filename: &str, source_path: &str, content_type: &str) -> Result<(), BackupStoreError>;
+    fn upload_file(
+        &self,
+        filename: &str,
+        source_path: &str,
+        content_type: &str,
+    ) -> Result<(), BackupStoreError>;
 
     fn cleanup_allowed(&self) -> bool {
         true

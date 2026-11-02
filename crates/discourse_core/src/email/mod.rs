@@ -104,7 +104,10 @@ mod tests {
 
     #[test]
     fn test_cleanup_alias() {
-        assert_eq!(cleanup_alias(Some("Alice <alice@example.com>")), Some("Alice alice@example.com".to_string()));
+        assert_eq!(
+            cleanup_alias(Some("Alice <alice@example.com>")),
+            Some("Alice alice@example.com".to_string())
+        );
         assert_eq!(cleanup_alias(Some("\"Alice\"")), Some("Alice".to_string()));
         assert_eq!(cleanup_alias(None), None);
     }

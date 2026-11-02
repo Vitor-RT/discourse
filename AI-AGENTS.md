@@ -107,7 +107,7 @@ use `bin/lint --fix --recent` only when appropriate.
 - CRITICAL MERGE RULE: NEVER close PRs with `gh pr close`! NEVER post automated comments on PRs using CLI scripts under the user's name!
 
 ### Non-Interactive CLI Merge & Conflict Resolution Protocol
-When GitHub reports that `gh pr merge <PR_NUMBER>` cannot be merged automatically due to conflicts, the agent MUST follow this non-interactive CLI workflow file-by-file:
+When GitHub reports that `gh pr merge <PR_NUMBER>` cannot be merged automatically due to conflicts, the agent MUST follow this non-interactive CLI workflow file-by-file (based on official GitHub documentation for resolving merge conflicts via command line):
 
 1. **Passo 1: Preparar e identificar as branches:**
    ```bash
@@ -121,18 +121,26 @@ When GitHub reports that `gh pr merge <PR_NUMBER>` cannot be merged automaticall
    git merge origin/$BASE_BRANCH --no-commit --no-ff
    ```
 
-3. **Passo 3: Listar os arquivos com conflito:**
+3. **Passo 3: Listar e identificar os caminhos não mesclados:**
    ```bash
+   git status
    git diff --name-only --diff-filter=U
    ```
 
 4. **Passo 4: Consolidar arquivo por arquivo:**
-   Inspect conflict markers (`<<<<<<< HEAD`, `=======`, `>>>>>>>`).
-   Resolve each file surgically (via `git checkout --ours`, `git checkout --theirs`, or custom stream/file editor writing), preserving Ruby logic parity and removing all conflict markers.
-   Stage each resolved file:
-   ```bash
-   git add <file-path>
-   ```
+   - **Cenário A: Conflito de alteração de linhas (Diferença de código):**
+     Inspecionar os marcadores de conflito (`<<<<<<< HEAD`, `=======`, `>>>>>>>`).
+     Combinar e editar o arquivo cirurgicamente mantendo a paridade com a lógica do Ruby, removendo obrigatoriamente os marcadores textuais de conflito (`<<<<<<<`, `=======`, `>>>>>>>`).
+     Para manter 100% a versão do PR: `git checkout --ours <caminho-do-arquivo>`
+     Para manter 100% a versão da base: `git checkout --theirs <caminho-do-arquivo>`
+     Marcar o arquivo como resolvido:
+     ```bash
+     git add <caminho-do-arquivo>
+     ```
+
+   - **Cenário B: Conflito de remoção de arquivo (Um lado modificou e o outro deletou):**
+     Para manter o arquivo no repositório: `git add <caminho-do-arquivo>`
+     Para remover definitivamente o arquivo: `git rm <caminho-do-arquivo>`
 
 5. **Passo 5: Validar, Comitar e Enviar (Push):**
    ```bash
@@ -143,7 +151,7 @@ When GitHub reports that `gh pr merge <PR_NUMBER>` cannot be merged automaticall
    ```
 
 6. **Passo 6: Concluir o Pull Request no GitHub:**
-   Once pushed cleanly without conflicts:
+   Com os conflitos 100% resolvidos e enviados para a branch do PR:
    ```bash
    gh pr merge <PR_NUMBER> --repo Vitor-RT/discourse --merge --delete-branch
    ```

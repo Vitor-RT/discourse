@@ -104,4 +104,4 @@ use `bin/lint --fix --recent` only when appropriate.
 - Focus on translating Ruby logic and unit tests into Rust native `#[cfg(test)]` modules verified via `cargo check` and `cargo test`.
 - All migration PRs target the `rust-migration` branch.
 - Once a Ruby file/module is translated and verified in Rust, the legacy `.rb` file is removed from `lib/` or `app/`.
-- CRITICAL MERGE RULE: NEVER close PRs with `gh pr close`! All Pull Requests MUST be merged officially using `gh pr merge <number> --merge --delete-branch` on GitHub so that every PR displays the official purple MERGED status and deletes its remote branch upon merging.
+- CRITICAL MERGE RULE: NEVER close PRs with `gh pr close`! NEVER post automated comments on PRs using `gh pr close` or CLI scripts under the user's name! All Pull Requests MUST be merged officially using `gh pr merge <number> --merge --delete-branch` on GitHub so that every PR displays the official purple MERGED status and deletes its remote branch upon merging.
